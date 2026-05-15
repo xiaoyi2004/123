@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>创建试卷</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <h1>📄 创建试卷</h1>
+        <a href="/teacher/dashboard" class="btn">← 返回</a>
+    </div>
+    <form method="post" action="/teacher/papers/add">
+        <div class="form-group">
+            <label>试卷名称</label>
+            <input name="name" required>
+        </div>
+        <div class="form-group">
+            <label>说明</label>
+            <input name="description">
+        </div>
+        <h3>选择题目（可多选，支持顺序）</h3>
+        <div class="checkbox-group">
+            <div th:each="q,stat : ${questions}" style="margin-right: 1rem;">
+                <label>
+                    <input type="checkbox" name="questionIds" th:value="${q.id}">
+                    <span th:text="${q.title}"></span>
+                    <input type="number" name="sortOrders" placeholder="顺序" style="width: 70px; margin-left: 8px;" th:value="${stat.index}">
+                </label>
+            </div>
+        </div>
+        <button type="submit" class="btn-primary">创建试卷</button>
+    </form>
+</div>
+</body>
+</html>

@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>答卷详情 - 在线考试系统</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <h1>📄 考试答卷详情</h1>
+        <div class="nav-links">
+            <a th:href="@{/student/results}" class="btn">← 返回成绩列表</a>
+            <a th:href="@{/teacher/results}" class="btn" th:if="${session.user.role == 'teacher'}">📊 全部成绩</a>
+            <a href="/logout" class="btn danger-btn">退出</a>
+        </div>
+    </div>
+
+    <div style="background: #f8fafc; padding: 1rem; border-radius: 20px; margin-bottom: 1.5rem;">
+        <p><strong>考试名称：</strong> <span th:text="${exam.name}"></span></p>
+        <p><strong>学生ID：</strong> <span th:text="${result.studentId}"></span>   
+            <strong>总分：</strong> <span th:text="${result.score}"></span> 分   
+            <strong>提交时间：</strong> <span th:text="${#temporals.format(result.submitTime, 'yyyy-MM-dd HH:mm:ss')}"></span></p>
+    </div>
+
+    <div th:each="item,stat : ${details}" class="question-card">
+        <div class="question-title">
+            <span th:text="${stat.index + 1} + '. ' + ${item.question.title} + ' (' + ${item.question.score} + '分)'"></span>
+        </div>
+        <div style="margin-top: 8px;">
+            <div><strong>你的答案：</strong> <span th:text="${item.studentAnswer} != null ? ${item.studentAnswer} : '(未作答)'"
+                                                  th:class="${item.isCorrect} ? 'correct-answer' : 'wrong-answer'"></span></div>
+            <div><strong>正确答案：</strong> <span th:text="${item.correctAnswer}"></span></div>
+            <div><strong>得分：</strong> <span th:text="${item.score}"></span> 分</div>
+        </div>
+    </div>
+
+    <style>
+        .correct-answer { background: #dcfce7; padding: 2px 10px; border-radius: 60px; color: #166534; display: inline-block; }
+        .wrong-answer { background: #fee2e2; padding: 2px 10px; border-radius: 60px; color: #b91c1c; display: inline-block; }
+    </style>
+</div>
+</body>
+</html>

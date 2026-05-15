@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>学生首页 - 在线考试系统</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <h1>🎓 学生中心</h1>
+        <div class="nav-links">
+            <a href="/student/results" class="btn">📜 我的成绩</a>
+            <a href="/logout" class="btn danger-btn">🚪 退出登录</a>
+        </div>
+    </div>
+
+    <h3>📌 可参加的考试</h3>
+    <div th:if="${exams.empty}" class="alert">暂无可用考试</div>
+    <div th:each="e : ${exams}" class="card">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div>
+                <strong style="font-size: 1.1rem;" th:text="${e.name}"></strong><br>
+                <span style="color: #64748b;">时长：<span th:text="${e.duration}"></span> 分钟</span>
+            </div>
+            <a th:href="@{/exam/{id}(id=${e.id})}" class="btn-primary">开始考试 ➡</a>
+        </div>
+    </div>
+</div>
+</body>
+</html>

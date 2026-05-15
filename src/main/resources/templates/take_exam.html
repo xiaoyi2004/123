@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>在线考试 - <span th:text="${exam.name}"></span></title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <style>
+        .timer {
+            position: sticky;
+            top: 20px;
+            background: white;
+            padding: 12px 20px;
+            border-radius: 60px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            text-align: center;
+            font-weight: bold;
+            font-size: 1.2rem;
+            margin-bottom: 2rem;
+            z-index: 10;
+        }
+        .submit-area {
+            text-align: center;
+            margin-top: 2rem;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <h1>📝 <span th:text="${exam.name}"></span></h1>
+        <div class="nav-links">
+            <span>⏱️ 时长：<span th:text="${exam.duration}"></span> 分钟</span>
+        </div>
+    </div>
+
+    <form method="post" th:action="@{/exam/{id}/submit(id=${exam.id})}">
+        <div th:each="q,stat : ${questions}" class="question-card">
+            <div class="question-title">
+                <span th:text="${stat.index + 1} + '. ' + ${q.title}"></span>
+                <span style="float: right; background: #eef2ff; padding: 2px 12px; border-radius: 60px;" th:text="${q.score} + '分'"></span>
+            </div>
+            <div class="question-options">
+                <!-- 单选题 / 判断题（都使用 radio） -->
+                <div th:if="${q.type != 'fill'}">
+                    <label class="radio-option" th:if="${q.optionA != null}">
+                        <input type="radio" th:name="'q_' + ${q.id}" value="A"> A. <span th:text="${q.optionA}"></span>
+                    </label>
+                    <label class="radio-option" th:if="${q.optionB != null}">
+                        <input type="radio" th:name="'q_' + ${q.id}" value="B"> B. <span th:text="${q.optionB}"></span>
+                    </label>
+                    <label class="radio-option" th:if="${q.optionC != null}">
+                        <input type="radio" th:name="'q_' + ${q.id}" value="C"> C. <span th:text="${q.optionC}"></span>
+                    </label>
+                    <label class="radio-option" th:if="${q.optionD != null}">
+                        <input type="radio" th:name="'q_' + ${q.id}" value="D"> D. <span th:text="${q.optionD}"></span>
+                    </label>
+                </div>
+                <!-- 填空题 -->
+                <div th:if="${q.type == 'fill'}">
+                    <input type="text" th:name="'q_' + ${q.id}" placeholder="请输入答案" style="width: 80%;">
+                </div>
+                <!-- 简答题 -->
+                <div th:if="${q.type == 'essay'}">
+                    <textarea th:name="'q_' + ${q.id}" rows="4" placeholder="请输入简答题答案" style="width: 95%;"></textarea>
+                </div>
+            </div>
+        </div>
+        <div class="submit-area">
+            <button type="submit" class="btn-primary" style="padding: 0.8rem 2rem; font-size: 1rem;">✍️ 提交试卷</button>
+        </div>
+    </form>
+</div>
+</body>
+</html>

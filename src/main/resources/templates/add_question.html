@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>新增题目</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <script>
+        function toggleOptions() {
+            let type = document.getElementById("typeSelect").value;
+            let optionDivs = document.querySelectorAll(".option-group");
+            let answerHint = document.getElementById("answerHint");
+            if (type === "fill") {
+                optionDivs.forEach(div => div.style.display = "none");
+                answerHint.innerText = "填空题答案：填写标准文本（建议精确匹配）";
+            } else if (type === "judge") {
+                optionDivs.forEach(div => div.style.display = "block");
+                answerHint.innerText = "判断题答案：填写 A（正确） 或 B（错误）";
+            } else if (type === "essay") {
+                optionDivs.forEach(div => div.style.display = "none");
+                answerHint.innerText = "简答题参考答案：填写关键词（多个关键词可用逗号分隔，包含任意一个即得分）";
+            } else { // single
+                optionDivs.forEach(div => div.style.display = "block");
+                answerHint.innerText = "单选题答案：填写选项字母（A/B/C/D）";
+            }
+        }
+    </script>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <h1>✍️ 新增题目</h1>
+        <a href="/teacher/questions" class="btn">← 返回题库</a>
+    </div>
+    <form method="post" action="/teacher/questions/add">
+        <div class="form-group">
+            <label>题干</label>
+            <input type="text" name="title" required>
+        </div>
+        <div class="form-group">
+            <label>题型</label>
+            <select name="type" id="typeSelect" onchange="toggleOptions()">
+                <option value="single">单选题</option>
+                <option value="judge">判断题</option>
+                <option value="fill">填空题</option>
+                <option value="essay">简答题</option>
+            </select>
+        </div>
+
+        <div class="option-group">
+            <label>选项A</label><input name="optionA">
+        </div>
+        <div class="option-group">
+            <label>选项B</label><input name="optionB">
+        </div>
+        <div class="option-group">
+            <label>选项C</label><input name="optionC">
+        </div>
+        <div class="option-group">
+            <label>选项D</label><input name="optionD">
+        </div>
+
+        <div class="form-group">
+            <label>正确答案</label>
+            <input name="answer" required>
+            <small id="answerHint" style="color:#4b5563;">单选题填 A/B/C/D；判断题填 A/B；填空题填文字</small>
+        </div>
+        <div class="form-group">
+            <label>分值</label>
+            <input type="number" name="score" value="5" min="1">
+        </div>
+        <button type="submit" class="btn-primary">保存题目</button>
+    </form>
+</div>
+<script>toggleOptions();</script>
+</body>
+</html>

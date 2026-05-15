@@ -1,0 +1,22 @@
+server:
+  port: 8080
+
+spring:
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    # 添加 createDatabaseIfNotExist=true 参数，让 MySQL 驱动自动创建数据库（需要 root 权限）
+    url: jdbc:mysql://localhost:3306/online_exam?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true&useSSL=false&createDatabaseIfNotExist=true
+    username: root
+    password: zzy200412123         # 请确保这是你 MySQL root 的真实密码
+  jpa:
+    hibernate:
+      ddl-auto: update        # 自动创建/更新表结构（但不会创建数据库）
+    show-sql: true
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQL8Dialect
+        format_sql: true
+  thymeleaf:
+    cache: false
+    prefix: classpath:/templates/
+    suffix: .html
