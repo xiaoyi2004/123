@@ -9,4 +9,6 @@ public interface PaperQuestionRepository extends JpaRepository<PaperQuestion, Lo
     List<PaperQuestion> findByPaperIdOrderBySortOrderAsc(Long paperId);
     // 检查题目是否被任何试卷使用（用于删除前校验）
     boolean existsByQuestionId(Long questionId);
+    // 新增
+    void deleteByPaperId(Long paperId);
 }

@@ -40,8 +40,17 @@
                 <span style="float: right; background: #eef2ff; padding: 2px 12px; border-radius: 60px;" th:text="${q.score} + '分'"></span>
             </div>
             <div class="question-options">
-                <!-- 单选题 / 判断题（都使用 radio） -->
-                <div th:if="${q.type != 'fill'}">
+                <!-- 单选题 / 判断题（判断题单独处理） -->
+                <div th:if="${q.type == 'judge'}">
+                    <label class="radio-option">
+                        <input type="radio" th:name="'q_' + ${q.id}" value="A"> 正确
+                    </label>
+                    <label class="radio-option">
+                        <input type="radio" th:name="'q_' + ${q.id}" value="B"> 错误
+                    </label>
+                </div>
+                <!-- 原有的 ABCD 选项渲染 -->
+                <div th:if="${q.type == 'single'}">
                     <label class="radio-option" th:if="${q.optionA != null}">
                         <input type="radio" th:name="'q_' + ${q.id}" value="A"> A. <span th:text="${q.optionA}"></span>
                     </label>
@@ -63,6 +72,11 @@
                 <div th:if="${q.type == 'essay'}">
                     <textarea th:name="'q_' + ${q.id}" rows="4" placeholder="请输入简答题答案" style="width: 95%;"></textarea>
                 </div>
+
+                <div th:if="${q.imageUrl}" style="margin: 10px 0;">
+                    <img th:src="@{${q.imageUrl}}" style="max-width: 100%; max-height: 200px; border-radius: 16px;">
+                </div>
+
             </div>
         </div>
         <div class="submit-area">

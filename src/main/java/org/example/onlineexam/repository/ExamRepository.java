@@ -7,4 +7,5 @@ import java.util.List;
 
 public interface ExamRepository extends JpaRepository<Exam, Long> {
     List<Exam> findByStatusAndStartTimeBeforeAndEndTimeAfter(String status, LocalDateTime now1, LocalDateTime now2);
+    boolean existsByPaperId(Long paperId);
 }

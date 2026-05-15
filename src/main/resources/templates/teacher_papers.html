@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>试卷管理 - 在线考试系统</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <style>
+        /* 补充试卷卡片内按钮样式 */
+        .paper-actions {
+            display: flex;
+            gap: 0.8rem;
+            align-items: center;
+        }
+        .badge {
+            background: #e2e8f0;
+            padding: 0.2rem 0.6rem;
+            border-radius: 50px;
+            font-size: 0.75rem;
+            color: #1e293b;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <h1>📄 试卷管理</h1>
+        <div class="nav-links">
+            <a href="/teacher/dashboard" class="btn">← 返回教师台</a>
+            <a href="/teacher/papers/add" class="btn-primary">+ 创建新试卷</a>
+        </div>
+    </div>
+
+    <!-- 显示操作结果消息 -->
+    <div th:if="${session.error}" class="alert" th:text="${session.error}"></div>
+    <div th:if="${session.success}" class="alert alert-success" th:text="${session.success}"></div>
+
+    <div th:if="${papers.empty}" class="alert" style="text-align: center;">
+        暂无试卷，<a href="/teacher/papers/add">点击创建第一份试卷</a>
+    </div>
+
+    <div th:if="${!papers.empty}" class="table-responsive">
+        <table>
+            <thead>
+            <tr><th>ID</th><th>试卷名称</th><th>描述</th><th>题目数量</th><th>操作</th></tr>
+            </thead>
+            <tbody>
+            <tr th:each="p : ${papers}">
+                <td th:text="${p.id}"></td>
+                <td><strong th:text="${p.name}"></strong></td>
+                <td th:text="${p.description} != null ? ${p.description} : '—'"></td>
+                <td>
+                    <!-- 动态查询该试卷包含的题目数量（通过自定义方法，在Controller中提前计算后放入model，也可在此使用辅助工具） -->
+                    <!-- 此处假设在Controller中已经将每个试卷的题目数量放入Map，或者直接显示占位，建议在Controller中准备 -->
+                    <span th:text="${paperQuestionCountMap != null ? paperQuestionCountMap.get(p.id) : '?'}"></span>
+                </td>
+                <td>
+                    <div class="paper-actions">
+                        <!-- 删除表单 -->
+                        <form method="post" th:action="@{/teacher/papers/delete/{id}(id=${p.id})}"
+                              onsubmit="return confirm('确定删除试卷「' + '${p.name}' + '」吗？\n该操作会同时解除所有题目关联，且若试卷已被考试引用将无法删除。');">
+                            <button type="submit" class="btn-outline" style="background:#fee2e2; color:#b91c1c; border-color:#fecaca;">删除</button>
+                        </form>
+                        <!-- 预留预览/编辑按钮（可后续扩展） -->
+                        <!-- <a href="#" class="btn-outline" style="font-size:0.8rem;">预览</a> -->
+                    </div>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- 使用说明卡片 -->
+    <div class="card" style="margin-top: 2rem; background: #faf9fe;">
+        <h3>📌 提示</h3>
+        <ul style="margin-left: 1.5rem; color: #4b5563;">
+            <li>只有未被任何考试使用的试卷才能被删除。</li>
+            <li>删除试卷不会删除原有的题目（题目仍然保留在题库中）。</li>
+            <li>点击「创建新试卷」可以组合题目生成新试卷。</li>
+        </ul>
+    </div>
+</div>
+
+<!-- 清除session消息的简单脚本（避免刷新后重复显示）-->
+<script>
+    // 页面加载后若存在消息，会在下一次请求时自动清除，无需额外处理
+</script>
+</body>
+</html>

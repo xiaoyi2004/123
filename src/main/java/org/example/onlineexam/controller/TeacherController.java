@@ -6,10 +6,17 @@ import org.example.onlineexam.repository.*;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import org.example.onlineexam.service.QuestionImportService;
 
+import java.io.File;
+import java.io.IOException;
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 
 @Controller
 @RequestMapping("/teacher")
@@ -19,17 +26,19 @@ public class TeacherController {
     private final PaperQuestionRepository paperQuestionRepository;
     private final ExamRepository examRepository;
     private final ExamResultRepository examResultRepository;
+    private final QuestionImportService importService;
 
     public TeacherController(QuestionRepository questionRepository,
                              PaperRepository paperRepository,
                              PaperQuestionRepository paperQuestionRepository,
                              ExamRepository examRepository,
-                             ExamResultRepository examResultRepository) {
+                             ExamResultRepository examResultRepository,QuestionImportService importService) {
         this.questionRepository = questionRepository;
         this.paperRepository = paperRepository;
         this.paperQuestionRepository = paperQuestionRepository;
         this.examRepository = examRepository;
         this.examResultRepository = examResultRepository;
+        this.importService = importService;
     }
 
     private boolean notTeacher(HttpSession session) {
@@ -44,21 +53,40 @@ public class TeacherController {
     }
 
     @GetMapping("/questions")
-    public String questions(HttpSession session, Model model) {
+    public String questions(@RequestParam(required = false) String type, Model model, HttpSession session) {
         if (notTeacher(session)) return "redirect:/login";
-        model.addAttribute("questions", questionRepository.findAll());
+        List<Question> questions;
+        if (type != null && !type.isEmpty()) {
+            questions = questionRepository.findByType(type);
+        } else {
+            questions = questionRepository.findAll();
+        }
+        model.addAttribute("questions", questions);
+        model.addAttribute("selectedType", type);
         return "question_list";
     }
 
     @GetMapping("/questions/add")
-    public String addQuestionPage(HttpSession session) {
-        if (notTeacher(session)) return "redirect:/login";
+    public String addQuestionPage(Model model) {
+        model.addAttribute("question", new Question());
         return "add_question";
     }
 
     @PostMapping("/questions/add")
-    public String addQuestion(Question question, HttpSession session) {
+    public String addQuestion(@ModelAttribute Question question,
+                              @RequestParam(value = "imageFile", required = false) MultipartFile imageFile,
+                              HttpSession session) throws IOException {
         if (notTeacher(session)) return "redirect:/login";
+        // 处理图片上传
+        if (imageFile != null && !imageFile.isEmpty()) {
+            String fileName = UUID.randomUUID() + "_" + imageFile.getOriginalFilename();
+            String uploadDir = System.getProperty("user.dir") + "/uploads/";
+            File dir = new File(uploadDir);
+            if (!dir.exists()) dir.mkdirs();
+            File dest = new File(uploadDir + fileName);
+            imageFile.transferTo(dest);
+            question.setImageUrl("/uploads/" + fileName);
+        }
         questionRepository.save(question);
         return "redirect:/teacher/questions";
     }
@@ -133,5 +161,60 @@ public class TeacherController {
             redirectAttributes.addFlashAttribute("error", "删除失败：" + e.getMessage());
         }
         return "redirect:/teacher/questions";
+    }
+
+    // 新增：导入页面
+    @GetMapping("/questions/import")
+    public String importQuestionsPage() {
+        return "import_questions";
+    }
+
+    // 新增：处理导入文件
+    @PostMapping("/questions/import")
+    public String importQuestions(@RequestParam("file") MultipartFile file, RedirectAttributes ra) {
+        if (file.isEmpty()) {
+            ra.addFlashAttribute("error", "请选择文件");
+            return "redirect:/teacher/questions/import";
+        }
+        try {
+            List<Question> questions = importService.parseQuestions(file);
+            for (Question q : questions) {
+                questionRepository.save(q);
+            }
+            ra.addFlashAttribute("success", "成功导入 " + questions.size() + " 道题目");
+        } catch (Exception e) {
+            ra.addFlashAttribute("error", "解析失败：" + e.getMessage());
+        }
+        return "redirect:/teacher/questions";
+    }
+
+    @GetMapping("/papers")
+    public String listPapers(HttpSession session, Model model) {
+        if (notTeacher(session)) return "redirect:/login";
+        List<Paper> papers = paperRepository.findAll();
+        // 计算每个试卷的题目数量
+        Map<Long, Integer> countMap = new HashMap<>();
+        for (Paper p : papers) {
+            int count = paperQuestionRepository.findByPaperIdOrderBySortOrderAsc(p.getId()).size();
+            countMap.put(p.getId(), count);
+        }
+        model.addAttribute("papers", papers);
+        model.addAttribute("paperQuestionCountMap", countMap);
+        return "teacher_papers";
+    }
+    @PostMapping("/papers/delete/{id}")
+    public String deletePaper(@PathVariable Long id, HttpSession session, RedirectAttributes ra) {
+        if (notTeacher(session)) return "redirect:/login";
+        // 检查是否被考试引用
+        if (examRepository.existsByPaperId(id)) {
+            ra.addFlashAttribute("error", "该试卷已被考试使用，无法删除");
+            return "redirect:/teacher/papers";
+        }
+        // 删除试卷关联的题目关系
+        paperQuestionRepository.deleteByPaperId(id);
+        // 删除试卷
+        paperRepository.deleteById(id);
+        ra.addFlashAttribute("success", "试卷删除成功");
+        return "redirect:/teacher/papers";
     }
 }

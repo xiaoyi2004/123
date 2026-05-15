@@ -8,16 +8,23 @@
         function toggleOptions() {
             let type = document.getElementById("typeSelect").value;
             let optionDivs = document.querySelectorAll(".option-group");
+            let judgeDiv = document.getElementById("judgeOptions");
             let answerHint = document.getElementById("answerHint");
+
+            // 先全部隐藏原有选项组
+            optionDivs.forEach(div => div.style.display = "none");
+            judgeDiv.style.display = "none";
+
             if (type === "fill") {
-                optionDivs.forEach(div => div.style.display = "none");
                 answerHint.innerText = "填空题答案：填写标准文本（建议精确匹配）";
             } else if (type === "judge") {
-                optionDivs.forEach(div => div.style.display = "block");
-                answerHint.innerText = "判断题答案：填写 A（正确） 或 B（错误）";
+                judgeDiv.style.display = "block";
+                answerHint.innerText = "判断题答案：选择正确或错误";
+                // 清除原有ABCD字段的值
+                document.getElementsByName('optionA')[0].value = '';
+                document.getElementsByName('optionB')[0].value = '';
             } else if (type === "essay") {
-                optionDivs.forEach(div => div.style.display = "none");
-                answerHint.innerText = "简答题参考答案：填写关键词（多个关键词可用逗号分隔，包含任意一个即得分）";
+                answerHint.innerText = "简答题参考答案：填写关键词（多个关键词可用逗号分隔）";
             } else { // single
                 optionDivs.forEach(div => div.style.display = "block");
                 answerHint.innerText = "单选题答案：填写选项字母（A/B/C/D）";
@@ -31,7 +38,7 @@
         <h1>✍️ 新增题目</h1>
         <a href="/teacher/questions" class="btn">← 返回题库</a>
     </div>
-    <form method="post" action="/teacher/questions/add">
+    <form method="post" enctype="multipart/form-data" th:action="@{/teacher/questions/add}" th:object="${question}">
         <div class="form-group">
             <label>题干</label>
             <input type="text" name="title" required>
@@ -57,6 +64,21 @@
         </div>
         <div class="option-group">
             <label>选项D</label><input name="optionD">
+        </div>
+
+        <!-- 在原有 .option-group 区域后增加一个专门用于判断题的容器 -->
+        <div id="judgeOptions" style="display: none;">
+            <label style="display: inline-flex; align-items: center; gap: 1rem; margin-top: 0.5rem;">
+                <input type="radio" name="judgeTemp" value="A" onchange="document.getElementsByName('answer')[0].value='A'"> 正确
+            </label>
+            <label style="display: inline-flex; align-items: center; gap: 1rem; margin-left: 1.5rem;">
+                <input type="radio" name="judgeTemp" value="B" onchange="document.getElementsByName('answer')[0].value='B'"> 错误
+            </label>
+        </div>
+
+        <div class="form-group">
+            <label>题干图片（可选）</label>
+            <input type="file" name="imageFile" accept="image/*">
         </div>
 
         <div class="form-group">

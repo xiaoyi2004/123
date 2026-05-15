@@ -19,6 +19,13 @@ public class Question {
     private String optionD;
     private String answer;
     private Integer score;
+    // 在原有属性后添加
+    @Column(name = "image_url")
+    private String imageUrl;
+
+    // 生成 getter / setter
+    public String getImageUrl() { return imageUrl; }
+    public void setImageUrl(String imageUrl) { this.imageUrl = imageUrl; }
 
     public Question() {}
 

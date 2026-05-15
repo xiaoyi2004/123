@@ -15,6 +15,17 @@
         </div>
     </div>
 
+    <div style="margin-bottom: 1rem;">
+        <label>按题型筛选：</label>
+        <select onchange="location.href='/teacher/questions?type='+this.value">
+            <option value="" th:selected="${selectedType == null}">全部</option>
+            <option value="single" th:selected="${selectedType == 'single'}">单选题</option>
+            <option value="judge" th:selected="${selectedType == 'judge'}">判断题</option>
+            <option value="fill" th:selected="${selectedType == 'fill'}">填空题</option>
+            <option value="essay" th:selected="${selectedType == 'essay'}">简答题</option>
+        </select>
+    </div>
+
     <!-- 显示操作结果消息（通过 RedirectAttributes 传递） -->
     <div th:if="${session.error}" class="alert" th:text="${session.error}"></div>
     <div th:if="${session.success}" class="alert alert-success" th:text="${session.success}"></div>

@@ -1,10 +1,29 @@
 <!DOCTYPE html>
-<html lang="en">
+<html xmlns:th="http://www.thymeleaf.org">
 <head>
   <meta charset="UTF-8">
-  <title>Title</title>
+  <title>批量导入题目</title>
+  <link rel="stylesheet" th:href="@{/css/style.css}">
 </head>
 <body>
-
+<div class="container">
+  <div class="header">
+    <h1>📂 批量导入题目</h1>
+    <a href="/teacher/questions" class="btn">← 返回题库</a>
+  </div>
+  <div th:if="${error}" class="alert" th:text="${error}"></div>
+  <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
+  <form method="post" enctype="multipart/form-data" action="/teacher/questions/import">
+    <div class="form-group">
+      <label>选择文件（.txt 或 .docx）</label>
+      <input type="file" name="file" accept=".txt,.docx" required>
+      <small>文件格式：每道题之间空行隔开，单选题示例：<br>
+        1. Java 的三大特性是什么？<br>
+        A. 封装 B. 继承 C. 多态 D. 抽象<br>
+        答案：ABC（或单独一行 答案：A）</small>
+    </div>
+    <button type="submit" class="btn-primary">开始智能导入</button>
+  </form>
+</div>
 </body>
 </html>
