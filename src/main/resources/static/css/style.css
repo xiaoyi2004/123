@@ -1,349 +1,78 @@
-/* ========== 全局重置 & 字体 ========== */
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
-
-body {
-    font-family: 'Inter', system-ui, 'Segoe UI', 'Roboto', 'Microsoft YaHei', sans-serif;
-    background: linear-gradient(145deg, #eef2ff 0%, #e0e7ff 100%);
-    min-height: 100vh;
-    padding: 2rem 1.5rem;
-    color: #1e293b;
-    position: relative;
-    animation: fadeIn 0.4s ease-out;
-}
-
-/* 背景微光效果 */
-body::before {
-    content: '';
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: radial-gradient(circle at 10% 20%, rgba(255,255,245,0.3), rgba(255,255,245,0));
-    pointer-events: none;
-    z-index: -1;
-}
-
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(8px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-
-/* ========== 主容器（毛玻璃卡片） ========== */
-.container {
-    max-width: 1280px;
-    margin: 0 auto;
-    background: rgba(255, 255, 255, 0.94);
-    backdrop-filter: blur(2px);
-    border-radius: 40px;
-    box-shadow: 0 25px 45px -12px rgba(0, 0, 0, 0.2), 0 1px 2px rgba(0,0,0,0.05);
-    overflow: hidden;
-    padding: 2rem 2rem 2.5rem;
-    transition: all 0.2s;
-    border: 1px solid rgba(255,255,255,0.6);
-}
-
-/* ========== 头部区域 ========== */
-.header {
+/* ========== 教师工作台新样式 ========== */
+.dashboard {
     display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 2rem;
-    padding-bottom: 1rem;
-    border-bottom: 1px solid #e2e8f0;
+    gap: 2rem;
     flex-wrap: wrap;
-    gap: 1rem;
 }
-
-.header h1 {
-    font-size: 1.9rem;
-    font-weight: 700;
-    background: linear-gradient(135deg, #1e293b, #3b82f6);
-    background-clip: text;
-    -webkit-background-clip: text;
-    color: transparent;
-    letter-spacing: -0.3px;
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-}
-
-/* ========== 按钮 & 链接通用样式 ========== */
-.btn, a.btn, button, .nav-links a {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.5rem;
-    padding: 0.6rem 1.2rem;
-    font-size: 0.9rem;
-    font-weight: 500;
-    border-radius: 48px;
-    text-decoration: none;
-    transition: all 0.2s ease;
-    border: none;
-    cursor: pointer;
-    background-color: #f1f5f9;
-    color: #1e293b;
-    box-shadow: 0 1px 1px rgba(0,0,0,0.05);
-}
-
-.btn-primary, button[type="submit"] {
-    background: linear-gradient(100deg, #2563eb, #4f46e5);
-    color: white;
-    box-shadow: 0 2px 6px rgba(37, 99, 235, 0.2);
-}
-
-.btn-primary:hover, button[type="submit"]:hover {
-    background: linear-gradient(100deg, #1d4ed8, #4338ca);
-    transform: translateY(-2px);
-    box-shadow: 0 8px 18px rgba(37, 99, 235, 0.3);
-}
-
-.btn-outline {
-    background: transparent;
-    border: 1px solid #cbd5e1;
-    color: #475569;
-}
-
-.btn-outline:hover {
+.sidebar {
     background: #f8fafc;
-    border-color: #94a3b8;
-    transform: translateY(-1px);
-}
-
-.danger-btn {
-    background: linear-gradient(100deg, #ef4444, #dc2626);
-    color: white;
-}
-
-.danger-btn:hover {
-    background: #dc2626;
-    transform: translateY(-2px);
-    box-shadow: 0 8px 16px rgba(220,38,38,0.25);
-}
-
-/* ========== 卡片 ========== */
-.card {
-    background: #ffffff;
     border-radius: 32px;
-    box-shadow: 0 8px 20px -6px rgba(0, 0, 0, 0.08);
-    padding: 1.5rem;
-    margin-bottom: 1.5rem;
-    transition: all 0.25s;
-    border: 1px solid #edf2f7;
-}
-
-.card:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 20px 30px -12px rgba(0, 0, 0, 0.12);
-    border-color: #cbd5e1;
-}
-
-/* ========== 表单 ========== */
-.form-group {
-    margin-bottom: 1.35rem;
-}
-
-label {
-    display: block;
-    font-weight: 600;
-    margin-bottom: 0.5rem;
-    color: #334155;
-    font-size: 0.9rem;
-}
-
-input, select, textarea {
-    width: 100%;
-    padding: 0.8rem 1rem;
-    border: 1px solid #cbd5e1;
-    border-radius: 28px;
-    font-size: 0.95rem;
-    transition: 0.2s;
-    background-color: #fff;
-    outline: none;
-    font-family: inherit;
-}
-
-input:focus, select:focus, textarea:focus {
-    border-color: #3b82f6;
-    box-shadow: 0 0 0 3px rgba(59,130,246,0.2);
-    transform: scale(1.01);
-}
-
-/* checkbox & radio 组 */
-.checkbox-group {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 1rem;
-    align-items: center;
-    background: #f9fafb;
-    padding: 1rem;
-    border-radius: 28px;
-    margin: 0.5rem 0;
-}
-
-.checkbox-group label {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    font-weight: normal;
-    margin: 0;
-    cursor: pointer;
-}
-
-input[type="checkbox"], input[type="radio"] {
-    width: 1.1rem;
-    height: 1.1rem;
-    accent-color: #2563eb;
-}
-
-/* ========== 表格（现代风格） ========== */
-.table-responsive {
-    overflow-x: auto;
-    border-radius: 28px;
+    padding: 1.2rem 0;
     border: 1px solid #eef2ff;
+}
+.sidebar ul { list-style: none; padding: 0; margin: 0; }
+.sidebar li { margin: 0.2rem 0; }
+.sidebar a {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.7rem 1.5rem;
+    color: #334155;
+    font-weight: 500;
+    transition: 0.2s;
+    border-left: 3px solid transparent;
+}
+.sidebar a:hover {
+    background: #eef2ff;
+    color: #1e40af;
+    border-left-color: #3b82f6;
+}
+.sidebar a.active {
+    background: #e0e7ff;
+    color: #1e3a8a;
+    border-left-color: #2563eb;
+}
+.main-content {
+    flex: 1;
     background: white;
+    border-radius: 32px;
+    padding: 1.8rem;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.04);
+}
+.welcome-card {
+    background: linear-gradient(135deg, #f0f9ff 0%, #e6f0ff 100%);
+    border-radius: 28px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+}
+.feature-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 1.2rem;
     margin-top: 1rem;
 }
-
-table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 0.9rem;
-}
-
-th, td {
-    padding: 1rem 1.2rem;
-    text-align: left;
-    border-bottom: 1px solid #ecf3fa;
-}
-
-th {
-    background: #f9fafb;
-    font-weight: 600;
-    color: #1e293b;
-    font-size: 0.85rem;
-    letter-spacing: 0.3px;
-}
-
-tr:hover {
-    background: #fefce8;
-    transition: 0.1s;
-}
-
-/* ========== 题目卡片（考试页专用） ========== */
-.question-card {
+.feature-item {
     background: #fff;
-    border-radius: 28px;
-    border: 1px solid #eef2ff;
-    padding: 1.5rem;
-    margin-bottom: 1.5rem;
-    transition: all 0.2s;
-}
-
-.question-card:hover {
-    box-shadow: 0 10px 20px -8px rgba(0,0,0,0.1);
-}
-
-.question-title {
-    font-weight: 700;
-    font-size: 1.05rem;
-    margin-bottom: 1rem;
-    color: #0f172a;
-    display: flex;
-    justify-content: space-between;
-    flex-wrap: wrap;
-}
-
-.question-options {
-    display: flex;
-    flex-direction: column;
-    gap: 0.75rem;
-    padding-left: 0.5rem;
-}
-
-.radio-option, .checkbox-option {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
+    border-radius: 24px;
+    padding: 1.2rem;
+    text-align: center;
     cursor: pointer;
+    transition: 0.2s;
+    border: 1px solid #eef2ff;
 }
+.feature-item:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 20px -12px rgba(0,0,0,0.15);
+    border-color: #cbd5e1;
+}
+.feature-icon { font-size: 2rem; margin-bottom: 0.5rem; }
+.feature-title { font-weight: 700; margin: 0.5rem 0 0.25rem; }
+.feature-desc { font-size: 0.8rem; color: #64748b; }
 
-/* ========== 消息提示增强 ========== */
-.alert {
-    padding: 1rem 1.25rem;
-    border-radius: 28px;
-    margin-bottom: 1.5rem;
-    background: #fee2e2;
-    color: #b91c1c;
-    border-left: 5px solid #ef4444;
-    font-weight: 500;
-    backdrop-filter: blur(2px);
-}
-
-.alert-success {
-    background: #dcfce7;
-    color: #166534;
-    border-left-color: #22c55e;
-}
-
-/* ========== 自定义滚动条 ========== */
-::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
-}
-::-webkit-scrollbar-track {
-    background: #eef2ff;
-    border-radius: 10px;
-}
-::-webkit-scrollbar-thumb {
-    background: #94a3b8;
-    border-radius: 10px;
-}
-::-webkit-scrollbar-thumb:hover {
-    background: #64748b;
-}
-
-/* ========== 响应式布局增强 ========== */
 @media (max-width: 768px) {
-    body {
-        padding: 1rem;
-    }
-    .container {
-        padding: 1.25rem;
-    }
-    .header {
-        flex-direction: column;
-        align-items: flex-start;
-    }
-    .header h1 {
-        font-size: 1.5rem;
-    }
-    .btn, .nav-links a, button {
-        padding: 0.5rem 1rem;
-        font-size: 0.8rem;
-    }
-    th, td {
-        padding: 0.7rem 0.8rem;
-    }
-    .question-card {
-        padding: 1rem;
-    }
+    .dashboard { flex-direction: column; }
+    .sidebar { width: 100%; }
+    .sidebar ul { display: flex; flex-wrap: wrap; justify-content: center; gap: 0.5rem; }
+    .sidebar a { border-left: none; border-bottom: 2px solid transparent; padding: 0.5rem 1rem; }
+    .sidebar a.active { border-bottom-color: #2563eb; }
 }
-
-/* ========== 小装饰：按钮图标占位（若HTML中未加图标，可后续加，此处无影响） ========== */
-.btn:before, .btn-primary:before {
-    content: '✨';
-    font-size: 0.9rem;
-    display: inline-block;
-    filter: brightness(0.9);
-    opacity: 0.8;
-}
-/* 不同按钮去除多余图标（可选） */
-.danger-btn:before { content: '⚠️'; }
-.btn-outline:before { content: '🔍'; }
-/* 如有不希望显示图标的按钮，可单独覆盖 */

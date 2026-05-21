@@ -2,43 +2,88 @@
 <html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>教师后台 - 在线考试系统</title>
+    <title>教师工作台 - 在线考试系统</title>
     <link rel="stylesheet" th:href="@{/css/style.css}">
+    <style>
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+        .feature-card {
+            background: white;
+            border-radius: 28px;
+            padding: 1.5rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: 1px solid #eef2ff;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.02);
+        }
+        .feature-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 25px -12px rgba(0,0,0,0.1);
+            border-color: #cbd5e1;
+        }
+        .feature-icon {
+            font-size: 2.5rem;
+            margin-bottom: 0.75rem;
+        }
+        .feature-title {
+            font-weight: 700;
+            font-size: 1.2rem;
+            margin-bottom: 0.5rem;
+        }
+        .feature-desc {
+            font-size: 0.85rem;
+            color: #64748b;
+        }
+        .welcome {
+            background: linear-gradient(135deg, #f0f9ff, #e6f0ff);
+            border-radius: 28px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+        }
+    </style>
 </head>
 <body>
 <div class="container">
     <div class="header">
         <h1>👨‍🏫 教师工作台</h1>
-        <div class="nav-links">
-            <a href="/teacher/questions" class="btn">📋 题库管理</a>
-            <a href="/teacher/questions/add" class="btn">➕ 新增题目</a>
-            <a href="/teacher/papers/add" class="btn">📄 创建试卷</a>
-            <a href="/teacher/exams/add" class="btn">📅 发布考试</a>
-            <a href="/teacher/results" class="btn">📊 查看成绩</a>
-            <a href="/logout" class="btn danger-btn">🚪 退出登录</a>
-        </div>
+        <a href="/logout" class="btn danger-btn">退出登录</a>
     </div>
-    <div style="text-align: center; padding: 3rem 1rem;">
-        <div class="card" style="display: inline-block; width: 250px; margin: 1rem;">
-            <h3>📝 题库</h3>
-            <p>管理所有试题</p>
-            <a href="/teacher/questions" class="btn-primary">前往</a>
+
+    <div class="welcome">
+        <h2>欢迎，<span th:text="${session.user.realName != null ? session.user.realName : session.user.username}"></span> 🎓</h2>
+        <p style="color: #475569;">请选择需要管理的功能</p>
+    </div>
+
+    <div class="feature-grid">
+        <div class="feature-card" onclick="location.href='/teacher/questions'">
+            <div class="feature-icon">📚</div>
+            <div class="feature-title">题库管理</div>
+            <div class="feature-desc">增删改查试题</div>
         </div>
-        <div class="card" style="display: inline-block; width: 250px; margin: 1rem;">
-            <h3>📑 试卷</h3>
-            <p>创建/编辑试卷</p>
-            <a href="/teacher/papers/add" class="btn-primary">创建</a>
+        <div class="feature-card" onclick="location.href='/teacher/papers'">
+            <div class="feature-icon">📄</div>
+            <div class="feature-title">试卷管理</div>
+            <div class="feature-desc">创建、删除试卷</div>
         </div>
-        <div class="card" style="display: inline-block; width: 250px; margin: 1rem;">
-            <h3>🎯 考试</h3>
-            <p>发布新的考试</p>
-            <a href="/teacher/exams/add" class="btn-primary">发布</a>
+        <div class="feature-card" onclick="location.href='/teacher/exams/add'">
+            <div class="feature-icon">📅</div>
+            <div class="feature-title">发布考试</div>
+            <div class="feature-desc">设置考试时间、试卷</div>
         </div>
-        <div class="card" style="display: inline-block; width: 250px; margin: 1rem;">
-            <h3>📈 成绩</h3>
-            <p>查看所有成绩</p>
-            <a href="/teacher/results" class="btn-primary">查看</a>
+        <div class="feature-card" onclick="location.href='/teacher/results'">
+            <div class="feature-icon">📊</div>
+            <div class="feature-title">成绩总览</div>
+            <div class="feature-desc">查看所有学生成绩</div>
+        </div>
+        <div class="feature-card" onclick="location.href='/teacher/questions/import'">
+            <div class="feature-icon">📂</div>
+            <div class="feature-title">批量导入</div>
+            <div class="feature-desc">快速导入试题</div>
         </div>
     </div>
 </div>

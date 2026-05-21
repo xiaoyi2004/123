@@ -100,7 +100,8 @@ public class ExamController {
             Question q = questionRepository.findById(pq.getQuestionId()).orElse(null);
             if (q != null) {
                 questions.add(q);
-                answers.put(String.valueOf(q.getId()), request.getParameter("q_" + q.getId()));
+                String paramValue = request.getParameter("q_" + q.getId());
+                answers.put(String.valueOf(q.getId()), paramValue == null ? "" : paramValue);
             }
         }
 

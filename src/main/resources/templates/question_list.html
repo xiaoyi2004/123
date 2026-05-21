@@ -4,65 +4,106 @@
     <meta charset="UTF-8">
     <title>题库管理 - 在线考试系统</title>
     <link rel="stylesheet" th:href="@{/css/style.css}">
+    <style>
+        .filter-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 1rem 0 1.5rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+        .filter-bar select {
+            width: auto;
+            padding: 0.5rem 1rem;
+            border-radius: 40px;
+        }
+        .table-container {
+            overflow-x: auto;
+            border-radius: 28px;
+            border: 1px solid #eef2ff;
+            background: white;
+        }
+        .badge {
+            background: #e2e8f0;
+            padding: 0.2rem 0.6rem;
+            border-radius: 50px;
+            font-size: 0.75rem;
+        }
+        .delete-form {
+            display: inline;
+        }
+        .btn-small {
+            padding: 0.3rem 0.8rem;
+            font-size: 0.8rem;
+        }
+    </style>
 </head>
 <body>
 <div class="container">
     <div class="header">
         <h1>📚 题库管理</h1>
         <div class="nav-links">
-            <a href="/teacher/questions/add" class="btn-primary">+ 新增题目</a>
             <a href="/teacher/dashboard" class="btn">← 返回仪表盘</a>
+            <a href="/teacher/questions/add" class="btn-primary">+ 新增题目</a>
+            <a href="/teacher/questions/import" class="btn">📂 批量导入</a>
         </div>
     </div>
 
-    <div style="margin-bottom: 1rem;">
-        <label>按题型筛选：</label>
-        <select onchange="location.href='/teacher/questions?type='+this.value">
-            <option value="" th:selected="${selectedType == null}">全部</option>
-            <option value="single" th:selected="${selectedType == 'single'}">单选题</option>
-            <option value="judge" th:selected="${selectedType == 'judge'}">判断题</option>
-            <option value="fill" th:selected="${selectedType == 'fill'}">填空题</option>
-            <option value="essay" th:selected="${selectedType == 'essay'}">简答题</option>
-        </select>
-    </div>
-
-    <!-- 显示操作结果消息（通过 RedirectAttributes 传递） -->
+    <!-- 消息提示 -->
     <div th:if="${session.error}" class="alert" th:text="${session.error}"></div>
     <div th:if="${session.success}" class="alert alert-success" th:text="${session.success}"></div>
 
-    <div class="table-responsive">
+    <!-- 筛选栏 -->
+    <div class="filter-bar">
+        <div>
+            <label>按题型筛选：</label>
+            <select onchange="location.href='/teacher/questions?type='+this.value">
+                <option value="" th:selected="${selectedType == null}">全部</option>
+                <option value="single" th:selected="${selectedType == 'single'}">单选题</option>
+                <option value="judge" th:selected="${selectedType == 'judge'}">判断题</option>
+                <option value="fill" th:selected="${selectedType == 'fill'}">填空题</option>
+                <option value="essay" th:selected="${selectedType == 'essay'}">简答题</option>
+            </select>
+        </div>
+        <div>
+            <span class="badge">共 <span th:text="${#lists.size(questions)}"></span> 道题目</span>
+        </div>
+    </div>
+
+    <div class="table-container">
         <table>
             <thead>
-            <tr><th>ID</th><th>题干</th><th>题型</th><th>答案</th><th>分值</th><th>操作</th></tr>
+            <tr><th>序号</th><th>题干</th><th>题型</th><th>答案</th><th>分值</th><th>操作</th></tr>
             </thead>
             <tbody>
-            <tr th:each="q : ${questions}">
-                <td th:text="${q.id}">30</td>
-                <td th:text="${q.title}">Java 中 main 方法的正确写法？</td>
+            <tr th:each="q, stat : ${questions}">
+                <td th:text="${stat.index + 1}"></td>
+                <td th:utext="${q.title.length() > 50 ? q.title.substring(0,50) + '...' : q.title}"></td>
                 <td>
                     <span th:if="${q.type == 'single'}">单选题</span>
                     <span th:if="${q.type == 'judge'}">判断题</span>
                     <span th:if="${q.type == 'fill'}">填空题</span>
                     <span th:if="${q.type == 'essay'}">简答题</span>
                 </td>
-                <td th:text="${q.answer}">A</td>
-                <td th:text="${q.score}">5</td>
+                <td th:text="${q.answer}"></td>
+                <td th:text="${q.score}"></td>
                 <td>
                     <form method="post" th:action="@{/teacher/questions/delete/{id}(id=${q.id})}"
                           style="display:inline;"
                           onsubmit="return confirm('确定删除题目「' + '${q.title}' + '」吗？\n如果已被试卷引用将无法删除。');">
-                        <button type="submit" class="btn-outline" style="background:#fee2e2; color:#b91c1c; border-color:#fecaca;">删除</button>
+                        <button type="submit" class="btn-outline btn-small" style="background:#fee2e2; color:#b91c1c;">删除</button>
                     </form>
                 </td>
+            </tr>
+            <tr th:if="${#lists.isEmpty(questions)}">
+                <td colspan="7" style="text-align:center; padding: 2rem;">暂无题目，请点击“新增题目”或“批量导入”添加。</td>
             </tr>
             </tbody>
         </table>
     </div>
 </div>
 
-<!-- 自动清除 session 消息（避免刷新后重复显示），可保留由 Spring 自动管理 -->
-<script>
-    // 可选：前端主动清除 session 消息（刷新后不再显示），但 Spring 会在下一个请求自动清除，这里无需额外代码
-</script>
+<!-- 自动清除 session 消息（由Spring管理，无需额外代码） -->
 </body>
 </html>
