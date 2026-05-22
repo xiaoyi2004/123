@@ -2,24 +2,26 @@
 <html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>考试进行中</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>考试中 · 请勿切屏</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link rel="stylesheet" th:href="@{/css/style.css}">
-    <style>
-        #timer i { margin-right: 0.3rem; }
-    </style>
 </head>
 <body>
 <div class="container">
     <div class="header">
-        <h1><i class="fas fa-file-signature"></i> <span th:text="${exam.name}"></span></h1>
-        <div><i class="fas fa-user"></i> <span th:text="${student.realName}"></span> / <span th:text="${student.className}"></span></div>
+        <h1 th:text="${exam.name}"></h1>
+        <div><i class="fas fa-user"></i> <span th:text="${student.realName}"></span> · <span th:text="${student.className}"></span></div>
     </div>
-    <div id="timer"><i class="fas fa-hourglass-half"></i> 剩余时间：--:--，<i class="fas fa-eye-slash"></i> 切屏次数：<span id="leaveCount">0</span></div>
+    <div id="timer">
+        <span><i class="fas fa-hourglass-half"></i> 剩余时间：<span id="clock">--:--</span></span>
+        <span><i class="fas fa-eye-slash"></i> 切屏次数：<span id="leaveCount">0</span></span>
+    </div>
     <form id="examForm" method="post" th:action="@{/exam/{id}/submit(id=${exam.id})}">
-        <div th:each="q,stat:${questions}" class="question-card">
-            <h3><span th:text="${stat.index+1} + '. ' + ${q.title}"></span><span class="badge" th:text="${scoreMap.get(q.id)} + '分'"></span></h3>
-            <img th:if="${q.imageUrl}" th:src="@{${q.imageUrl}}" style="max-width:100%; max-height:200px; border-radius: 12px; margin: 0.5rem 0;">
+        <div th:each="q,stat : ${questions}" class="question-card" style="margin-bottom: 1.5rem;">
+            <h3><span th:text="${stat.index+1} + '. ' + ${q.title}"></span> <span class="badge" th:text="${scoreMap.get(q.id)} + '分'"></span></h3>
+            <img th:if="${q.imageUrl}" th:src="@{${q.imageUrl}}" style="max-width: 100%; max-height: 180px; border-radius: 1rem; margin: 0.5rem 0;">
             <div th:if="${q.type=='single'}">
                 <label class="radio-option" th:if="${q.optionA}"><input type="radio" th:name="'q_'+${q.id}" value="A"> A. <span th:text="${q.optionA}"></span></label>
                 <label class="radio-option" th:if="${q.optionB}"><input type="radio" th:name="'q_'+${q.id}" value="B"> B. <span th:text="${q.optionB}"></span></label>
@@ -27,44 +29,45 @@
                 <label class="radio-option" th:if="${q.optionD}"><input type="radio" th:name="'q_'+${q.id}" value="D"> D. <span th:text="${q.optionD}"></span></label>
             </div>
             <div th:if="${q.type=='judge'}">
-                <label class="radio-option"><input type="radio" th:name="'q_'+${q.id}" value="A"> <i class="fas fa-check-circle"></i> 正确</label>
-                <label class="radio-option"><input type="radio" th:name="'q_'+${q.id}" value="B"> <i class="fas fa-times-circle"></i> 错误</label>
+                <label class="radio-option"><input type="radio" th:name="'q_'+${q.id}" value="A"> 正确</label>
+                <label class="radio-option"><input type="radio" th:name="'q_'+${q.id}" value="B"> 错误</label>
             </div>
             <div th:if="${q.type=='fill'}">
-                <input type="text" th:name="'q_'+${q.id}" placeholder="请输入答案" style="width: 100%;">
+                <input type="text" th:name="'q_'+${q.id}" placeholder="请输入答案" class="form-group">
             </div>
             <div th:if="${q.type=='essay'}">
-                <textarea th:name="'q_'+${q.id}" rows="5" placeholder="请输入主观题答案"></textarea>
+                <textarea th:name="'q_'+${q.id}" rows="4" placeholder="请在此输入你的回答..." style="width:100%; border-radius:1rem;"></textarea>
             </div>
         </div>
-        <button class="btn-primary" onclick="return confirm('确认提交试卷？')"><i class="fas fa-paper-plane"></i> 提交试卷</button>
+        <button type="submit" class="btn-primary" onclick="return confirm('确认提交试卷？提交后不可修改。')"><i class="fas fa-paper-plane"></i> 提交试卷</button>
     </form>
 </div>
-<script th:inline="javascript">
+<script>
     let seconds = [[${exam.duration}]] * 60;
-    const timerDiv = document.getElementById('timer');
+    const timerSpan = document.getElementById('clock');
     const form = document.getElementById('examForm');
-    setInterval(() => {
-        seconds--;
+    const interval = setInterval(() => {
         if (seconds <= 0) {
-            alert('考试时间到，系统将自动交卷');
+            clearInterval(interval);
+            alert('考试时间已到，系统将自动交卷');
             form.submit();
+        } else {
+            seconds--;
+            let m = Math.floor(seconds / 60);
+            let s = seconds % 60;
+            timerSpan.innerText = `${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
         }
-        let m = Math.floor(seconds / 60), s = seconds % 60;
-        timerDiv.innerHTML = '<i class="fas fa-hourglass-half"></i> 剩余时间：' + String(m).padStart(2,'0') + ':' + String(s).padStart(2,'0') + '，<i class="fas fa-eye-slash"></i> 切屏次数：<span id="leaveCount">' + (window.leaveCount || 0) + '</span>';
     }, 1000);
-    let leave = 0;
-    document.addEventListener('visibilitychange', () => {
-        if (document.hidden) {
-            leave++;
-            document.getElementById('leaveCount').innerText = leave;
-            alert('警告：考试期间请勿切屏！本次切屏已记录。');
-        }
-    });
-    window.addEventListener('blur', () => {
-        leave++;
-        document.getElementById('leaveCount').innerText = leave;
-    });
+
+    let leaveCount = 0;
+    const leaveSpan = document.getElementById('leaveCount');
+    function recordTabSwitch() {
+        leaveCount++;
+        leaveSpan.innerText = leaveCount;
+        alert(`警告：检测到切屏行为，已记录 ${leaveCount} 次。请诚信考试！`);
+    }
+    document.addEventListener('visibilitychange', () => { if (document.hidden) recordTabSwitch(); });
+    window.addEventListener('blur', () => recordTabSwitch());
 </script>
 </body>
 </html>

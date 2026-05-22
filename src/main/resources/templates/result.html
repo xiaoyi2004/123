@@ -2,45 +2,50 @@
 <html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>成绩列表</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link rel="stylesheet" th:href="@{/css/style.css}">
 </head>
 <body>
 <div class="container">
     <div class="header">
-        <h1><i class="fas fa-chart-bar"></i> 成绩列表</h1>
+        <h1><i class="fas fa-chart-simple"></i> 成绩列表</h1>
         <div class="nav-links">
-            <a class="btn" th:href="${session.user.role=='teacher'?'/teacher/dashboard':'/student/dashboard'}"><i class="fas fa-arrow-left"></i> 返回</a>
+            <a class="btn" th:href="${session.user.role == 'teacher'} ? '/teacher/dashboard' : '/student/dashboard'"><i class="fas fa-arrow-left"></i> 返回</a>
         </div>
     </div>
-    <form th:if="${session.user.role=='teacher'}" method="get" action="/teacher/results" class="grid">
+
+    <form th:if="${session.user.role == 'teacher'}" method="get" action="/teacher/results" class="grid">
         <select name="className">
             <option value="">全部班级</option>
-            <option th:each="c:${classes}" th:value="${c}" th:selected="${selectedClass==c}" th:text="${c}"></option>
+            <option th:each="c : ${classes}" th:value="${c}" th:selected="${selectedClass == c}" th:text="${c}"></option>
         </select>
         <button class="btn-primary" type="submit"><i class="fas fa-filter"></i> 按班级查看</button>
     </form>
-    <table>
-        <thead>
-        <tr>
-            <th>学生</th><th>班级</th><th>考试</th><th>客观分</th><th>主观分</th><th>总分</th><th>状态</th><th>提交时间</th><th>详情</th>
-        </tr>
-        </thead>
-        <tbody>
-        <tr th:each="r:${results}">
-            <td data-label="学生" th:text="${studentMap!=null?studentMap.get(r.studentId)?.realName:student?.realName}"></td>
-            <td data-label="班级" th:text="${studentMap!=null?studentMap.get(r.studentId)?.className:student?.className}"></td>
-            <td data-label="考试" th:text="${examMap!=null?examMap.get(r.examId)?.name:r.examId}"></td>
-            <td data-label="客观分" th:text="${r.objectiveScore}"></td>
-            <td data-label="主观分" th:text="${r.subjectiveScore}"></td>
-            <td data-label="总分" th:text="${r.score}"></td>
-            <td data-label="状态" th:text="${r.gradeStatus}"></td>
-            <td data-label="提交时间" th:text="${r.submitTime}"></td>
-            <td data-label="详情"><a class="btn-outline" th:href="@{/result/detail/{id}(id=${r.id})}"><i class="fas fa-eye"></i> 查看</a></td>
-        </tr>
-        </tbody>
-    </table>
+
+    <div class="table-wrapper">
+        <table>
+            <thead>
+            <tr><th>学生</th><th>班级</th><th>考试</th><th>客观分</th><th>主观分</th><th>总分</th><th>状态</th><th>提交时间</th><th>详情</th></tr>
+            </thead>
+            <tbody>
+            <tr th:each="r : ${results}">
+                <td th:text="${studentMap != null ? studentMap.get(r.studentId)?.realName : student?.realName}"></td>
+                <td th:text="${studentMap != null ? studentMap.get(r.studentId)?.className : student?.className}"></td>
+                <td th:text="${examMap != null ? examMap.get(r.examId)?.name : r.examId}"></td>
+                <td th:text="${r.objectiveScore}"></td>
+                <td th:text="${r.subjectiveScore}"></td>
+                <td><strong th:text="${r.score}"></strong></td>
+                <td><span class="badge" th:text="${r.gradeStatus}"></span></td>
+                <td th:text="${#temporals.format(r.submitTime, 'yyyy-MM-dd HH:mm')}"></td>
+                <td><a class="btn-outline" th:href="@{/result/detail/{id}(id=${r.id})}"><i class="fas fa-eye"></i> 查看</a></td>
+            </tr>
+            <tr th:if="${results.empty}"><td colspan="9" style="text-align:center;">暂无成绩记录</td></tr>
+            </tbody>
+        </table>
+    </div>
 </div>
 </body>
 </html>

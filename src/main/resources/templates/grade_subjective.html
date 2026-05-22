@@ -2,25 +2,35 @@
 <html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>批阅主观题</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link rel="stylesheet" th:href="@{/css/style.css}">
 </head>
 <body>
 <div class="container">
     <div class="header">
-        <h1><i class="fas fa-file-signature"></i> 批阅：<span th:text="${exam.name}"></span></h1>
+        <h1><i class="fas fa-check-double"></i> 批阅：<span th:text="${exam.name}"></span></h1>
         <a class="btn" href="/teacher/grading"><i class="fas fa-arrow-left"></i> 返回</a>
     </div>
-    <div class="card"><i class="fas fa-user"></i> 学生：<span th:text="${student?.realName}"></span> / <span th:text="${student?.className}"></span>　<i class="fas fa-chart-line"></i> 客观题得分：<span th:text="${result.objectiveScore}"></span></div>
+    <div class="card">
+        <p><i class="fas fa-user-graduate"></i> 学生：<strong th:text="${student?.realName}"></strong> / <span th:text="${student?.className}"></span>　</p>
+        <p><i class="fas fa-calculator"></i> 客观题得分：<strong th:text="${result.objectiveScore}"></strong></p>
+    </div>
     <form method="post" th:action="@{/teacher/grading/{id}(id=${result.id})}">
-        <div th:each="q,stat:${essays}" class="question-card">
-            <h3><span th:text="${stat.index+1} + '. ' + ${q.title}"></span><span class="badge" th:text="${scoreMap.get(q.id)} + '分'"></span></h3>
-            <p><i class="fas fa-user-edit"></i> <b>学生答案：</b></p>
-            <div class="card" th:text="${answers.get('' + q.id)}" style="background: var(--gray-50);"></div>
-            <p><i class="fas fa-check-double"></i> <b>参考答案：</b> <span th:text="${q.answer}"></span></p>
-            <p><i class="fas fa-comment-dots"></i> <b>解析：</b> <span th:text="${q.analysis}"></span></p>
-            <div class="form-group"><label><i class="fas fa-star"></i> 给分</label><input type="number" min="0" th:max="${scoreMap.get(q.id)}" th:name="'score_' + ${q.id}" value="0"></div>
+        <div th:each="q,stat : ${essays}" class="question-card">
+            <h3><span th:text="${stat.index+1} + '. ' + ${q.title}"></span> <span class="badge" th:text="${scoreMap.get(q.id)} + '分'"></span></h3>
+            <div class="card" style="background:#f8fafc;">
+                <p><strong>学生答案：</strong></p>
+                <p th:text="${answers.get('' + q.id)}" style="white-space: pre-wrap;"></p>
+            </div>
+            <p><strong>参考答案：</strong> <span th:text="${q.answer}"></span></p>
+            <p><strong>解析：</strong> <span th:text="${q.analysis}"></span></p>
+            <div class="form-group">
+                <label>给分 (满分 <span th:text="${scoreMap.get(q.id)}"></span>)</label>
+                <input type="number" min="0" th:max="${scoreMap.get(q.id)}" th:name="'score_' + ${q.id}" value="0">
+            </div>
         </div>
         <button class="btn-primary" type="submit"><i class="fas fa-save"></i> 保存批阅结果</button>
     </form>

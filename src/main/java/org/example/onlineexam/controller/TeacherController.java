@@ -47,7 +47,14 @@ public class TeacherController {
     }
 
     @GetMapping("/dashboard")
-    public String dashboard(HttpSession session) { return notTeacher(session) ? "redirect:/login" : "teacher_dashboard"; }
+    public String dashboard(HttpSession session, Model model) {
+        if (notTeacher(session)) return "redirect:/login";
+        model.addAttribute("questionCount", questionRepository.count());
+        model.addAttribute("paperCount", paperRepository.count());
+        model.addAttribute("activeExamCount", examRepository.findByStatus("进行中").size());
+        model.addAttribute("pendingGradingCount", examResultRepository.findByGradeStatus("待批阅").size());
+        return "teacher_dashboard";
+    }
 
     @GetMapping("/questions")
     public String questions(@RequestParam(required = false) String type,

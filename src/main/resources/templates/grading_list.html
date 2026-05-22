@@ -2,29 +2,34 @@
 <html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>主观题批阅</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>主观题批阅列表</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link rel="stylesheet" th:href="@{/css/style.css}">
 </head>
 <body>
 <div class="container">
     <div class="header">
-        <h1><i class="fas fa-pen-nib"></i> 待批阅试卷</h1>
-        <a class="btn" href="/teacher/dashboard"><i class="fas fa-tachometer-alt"></i> 返回</a>
+        <h1><i class="fas fa-pen-ruler"></i> 主观题批阅</h1>
+        <a class="btn" href="/teacher/dashboard"><i class="fas fa-home"></i> 返回</a>
     </div>
-    <table>
-        <thead><tr><th>学生</th><th>班级</th><th>考试</th><th>客观分</th><th>提交时间</th><th>操作</th></tr></thead>
-        <tbody>
-        <tr th:each="r:${results}">
-            <td data-label="学生" th:text="${studentMap.get(r.studentId)?.realName}"></td>
-            <td data-label="班级" th:text="${studentMap.get(r.studentId)?.className}"></td>
-            <td data-label="考试" th:text="${examMap.get(r.examId)?.name}"></td>
-            <td data-label="客观分" th:text="${r.objectiveScore}"></td>
-            <td data-label="提交时间" th:text="${r.submitTime}"></td>
-            <td data-label="操作"><a class="btn-primary" th:href="@{/teacher/grading/{id}(id=${r.id})}"><i class="fas fa-check-double"></i> 批阅</a></td>
-        </tr>
-        </tbody>
-    </table>
+    <div class="table-wrapper">
+        <table>
+            <thead><tr><th>学生</th><th>班级</th><th>考试</th><th>客观分</th><th>提交时间</th><th>操作</th></tr></thead>
+            <tbody>
+            <tr th:each="r : ${results}">
+                <td th:text="${studentMap.get(r.studentId)?.realName}"></td>
+                <td th:text="${studentMap.get(r.studentId)?.className}"></td>
+                <td th:text="${examMap.get(r.examId)?.name}"></td>
+                <td th:text="${r.objectiveScore}"></td>
+                <td th:text="${#temporals.format(r.submitTime, 'yyyy-MM-dd HH:mm')}"></td>
+                <td><a class="btn-primary" th:href="@{/teacher/grading/{id}(id=${r.id})}"><i class="fas fa-edit"></i> 批阅</a></td>
+            </tr>
+            <tr th:if="${results.empty}"><td colspan="6" style="text-align:center;">暂无可批阅的主观题试卷</td></tr>
+            </tbody>
+        </table>
+    </div>
 </div>
 </body>
 </html>
