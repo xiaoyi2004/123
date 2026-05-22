@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>查看题目</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <h1><i class="fas fa-search"></i> 查看题目</h1>
+        <a class="btn" href="/teacher/questions"><i class="fas fa-arrow-left"></i> 返回</a>
+    </div>
+    <div th:if="${question==null}" class="alert">题目不存在</div>
+    <div th:if="${question!=null}" class="card">
+        <p><i class="fas fa-tag"></i> <b>题型：</b> <span th:text="${question.type}"></span></p>
+        <p><i class="fas fa-book"></i> <b>科目：</b> <span th:text="${question.subject}"></span></p>
+        <p><i class="fas fa-question-circle"></i> <b>题干：</b> <span th:text="${question.title}"></span></p>
+        <p th:if="${question.optionA}"><i class="fas fa-circle"></i> A. <span th:text="${question.optionA}"></span></p>
+        <p th:if="${question.optionB}"><i class="fas fa-circle"></i> B. <span th:text="${question.optionB}"></span></p>
+        <p th:if="${question.optionC}"><i class="fas fa-circle"></i> C. <span th:text="${question.optionC}"></span></p>
+        <p th:if="${question.optionD}"><i class="fas fa-circle"></i> D. <span th:text="${question.optionD}"></span></p>
+        <p><i class="fas fa-check-circle"></i> <b>答案：</b> <span th:text="${question.answer}"></span></p>
+        <p><i class="fas fa-comment-dots"></i> <b>解析：</b> <span th:text="${question.analysis}"></span></p>
+        <img th:if="${question.imageUrl}" th:src="@{${question.imageUrl}}" style="max-width:100%; border-radius: 12px;">
+    </div>
+</div>
+</body>
+</html>

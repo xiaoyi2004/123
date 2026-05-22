@@ -20,13 +20,28 @@ public class ResultDetailController {
 
     @GetMapping("/result/detail/{resultId}")
     public String viewResultDetail(@PathVariable Long resultId, HttpSession session, Model model) {
-        User user = (User) session.getAttribute("user"); if (user == null) return "redirect:/login";
-        ExamResult result = examResultRepository.findById(resultId).orElse(null); if (result == null) return "redirect:/student/results";
-        if ("student".equals(user.getRole()) && !result.getStudentId().equals(user.getId())) return "redirect:/student/results";
-        Exam exam = examRepository.findById(result.getExamId()).orElse(null); if (exam == null) return "redirect:/student/results";
+        User user = (User) session.getAttribute("user");
+        if (user == null)
+            return "redirect:/login";
+        ExamResult result = examResultRepository.findById(resultId).orElse(null);
+        if (result == null)
+            return "redirect:/student/results";
+        if ("student".equals(user.getRole()) && !result.getStudentId().equals(user.getId()))
+            return "redirect:/student/results";
+        Exam exam = examRepository.findById(result.getExamId()).orElse(null);
+        if (exam == null)
+            return "redirect:/student/results";
         Map<String,String> studentAnswers = new HashMap<>(); Map<String,Integer> subjectiveScores = new HashMap<>();
-        try { if (result.getAnswersJson()!=null) studentAnswers = objectMapper.readValue(result.getAnswersJson(), new TypeReference<>(){}); } catch (Exception ignored) {}
-        try { if (result.getSubjectiveScoresJson()!=null) subjectiveScores = objectMapper.readValue(result.getSubjectiveScoresJson(), new TypeReference<>(){}); } catch (Exception ignored) {}
+        try {
+            if (result.getAnswersJson()!=null) studentAnswers = objectMapper.readValue(result.getAnswersJson(), new TypeReference<>(){});
+        } catch (Exception ignored) {
+
+        }
+        try {
+            if (result.getSubjectiveScoresJson()!=null) subjectiveScores = objectMapper.readValue(result.getSubjectiveScoresJson(), new TypeReference<>(){});
+        } catch (Exception ignored) {
+
+        }
         Map<Long,Integer> scoreMap = paperQuestionRepository.findByPaperIdOrderBySortOrderAsc(exam.getPaperId()).stream().collect(Collectors.toMap(PaperQuestion::getQuestionId, pq -> pq.getScore()==null?0:pq.getScore()));
         List<Map<String,Object>> details = new ArrayList<>();
         for (PaperQuestion pq : paperQuestionRepository.findByPaperIdOrderBySortOrderAsc(exam.getPaperId())) {
