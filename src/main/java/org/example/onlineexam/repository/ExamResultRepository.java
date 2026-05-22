@@ -7,6 +7,7 @@ import java.util.Optional;
 
 public interface ExamResultRepository extends JpaRepository<ExamResult, Long> {
     List<ExamResult> findByStudentId(Long studentId);
+    List<ExamResult> findByGradeStatus(String gradeStatus);
     boolean existsByStudentIdAndExamId(Long studentId, Long examId);
-    Optional<ExamResult> findById(Long id);  // 已存在
+    Optional<ExamResult> findByStudentIdAndExamId(Long studentId, Long examId);
 }

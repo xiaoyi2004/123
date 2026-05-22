@@ -2,97 +2,48 @@
 <html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>新增题目</title>
+    <title>录入题目</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link rel="stylesheet" th:href="@{/css/style.css}">
     <script>
         function toggleOptions() {
-            let type = document.getElementById("typeSelect").value;
-            let optionDivs = document.querySelectorAll(".option-group");
-            let judgeDiv = document.getElementById("judgeOptions");
-            let answerHint = document.getElementById("answerHint");
-
-            // 先全部隐藏原有选项组
-            optionDivs.forEach(div => div.style.display = "none");
-            judgeDiv.style.display = "none";
-
-            if (type === "fill") {
-                answerHint.innerText = "填空题答案：填写标准文本（建议精确匹配）";
-            } else if (type === "judge") {
-                judgeDiv.style.display = "block";
-                answerHint.innerText = "判断题答案：选择正确或错误";
-                // 清除原有ABCD字段的值
-                document.getElementsByName('optionA')[0].value = '';
-                document.getElementsByName('optionB')[0].value = '';
-            } else if (type === "essay") {
-                answerHint.innerText = "简答题参考答案：填写关键词（多个关键词可用逗号分隔）";
-            } else { // single
-                optionDivs.forEach(div => div.style.display = "block");
-                answerHint.innerText = "单选题答案：填写选项字母（A/B/C/D）";
-            }
+            let type = document.getElementById('typeSelect').value;
+            document.getElementById('options').style.display = (type === 'single') ? 'block' : 'none';
+            document.getElementById('judgeHint').style.display = (type === 'judge') ? 'block' : 'none';
         }
     </script>
 </head>
-<body>
+<body onload="toggleOptions()">
 <div class="container">
     <div class="header">
-        <h1>✍️ 新增题目</h1>
-        <a href="/teacher/questions" class="btn">← 返回题库</a>
+        <h1 th:text="${question.id==null?'新增题目':'修改题目'}"><i class="fas fa-edit"></i> 题目</h1>
+        <a class="btn" href="/teacher/questions"><i class="fas fa-arrow-left"></i> 返回</a>
     </div>
-    <form method="post" enctype="multipart/form-data" th:action="@{/teacher/questions/add}" th:object="${question}">
-        <div class="form-group">
-            <label>题干</label>
-            <input type="text" name="title" required>
-        </div>
-        <div class="form-group">
-            <label>题型</label>
+    <form method="post" enctype="multipart/form-data" th:action="${question.id==null}?@{/teacher/questions/add}:@{/teacher/questions/edit/{id}(id=${question.id})}">
+        <div class="form-group"><label><i class="fas fa-tag"></i> 题型</label>
             <select name="type" id="typeSelect" onchange="toggleOptions()">
-                <option value="single">单选题</option>
-                <option value="judge">判断题</option>
-                <option value="fill">填空题</option>
-                <option value="essay">简答题</option>
+                <option value="single" th:selected="${question.type=='single'}">单选题</option>
+                <option value="judge" th:selected="${question.type=='judge'}">判断题</option>
+                <option value="fill" th:selected="${question.type=='fill'}">填空题</option>
+                <option value="essay" th:selected="${question.type=='essay'}">主观题</option>
             </select>
         </div>
-
-        <div class="option-group">
-            <label>选项A</label><input name="optionA">
+        <div class="form-group"><label><i class="fas fa-book"></i> 科目</label><input name="subject" th:value="${question.subject}" placeholder="如：Java"></div>
+        <div class="form-group"><label><i class="fas fa-question-circle"></i> 题干</label><textarea name="title" rows="4" required th:text="${question.title}"></textarea></div>
+        <div id="options">
+            <div class="grid">
+                <input name="optionA" placeholder="A选项" th:value="${question.optionA}">
+                <input name="optionB" placeholder="B选项" th:value="${question.optionB}">
+                <input name="optionC" placeholder="C选项" th:value="${question.optionC}">
+                <input name="optionD" placeholder="D选项" th:value="${question.optionD}">
+            </div>
         </div>
-        <div class="option-group">
-            <label>选项B</label><input name="optionB">
-        </div>
-        <div class="option-group">
-            <label>选项C</label><input name="optionC">
-        </div>
-        <div class="option-group">
-            <label>选项D</label><input name="optionD">
-        </div>
-
-        <!-- 在原有 .option-group 区域后增加一个专门用于判断题的容器 -->
-        <div id="judgeOptions" style="display: none;">
-            <label style="display: inline-flex; align-items: center; gap: 1rem; margin-top: 0.5rem;">
-                <input type="radio" name="judgeTemp" value="A" onchange="document.getElementsByName('answer')[0].value='A'"> 正确
-            </label>
-            <label style="display: inline-flex; align-items: center; gap: 1rem; margin-left: 1.5rem;">
-                <input type="radio" name="judgeTemp" value="B" onchange="document.getElementsByName('answer')[0].value='B'"> 错误
-            </label>
-        </div>
-
-        <div class="form-group">
-            <label>题干图片（可选）</label>
-            <input type="file" name="imageFile" accept="image/*">
-        </div>
-
-        <div class="form-group">
-            <label>正确答案</label>
-            <input name="answer" required>
-            <small id="answerHint" style="color:#4b5563;">单选题填 A/B/C/D；判断题填 A/B；填空题填文字</small>
-        </div>
-        <div class="form-group">
-            <label>分值</label>
-            <input type="number" name="score" value="5" min="1">
-        </div>
-        <button type="submit" class="btn-primary">保存题目</button>
+        <div id="judgeHint" class="alert">判断题答案填写 A 表示正确，B 表示错误。</div>
+        <div class="form-group"><label><i class="fas fa-check-circle"></i> 正确答案/参考答案</label><input name="answer" th:value="${question.answer}" required></div>
+        <div class="form-group"><label><i class="fas fa-comment-dots"></i> 答案解析</label><textarea name="analysis" rows="3" th:text="${question.analysis}"></textarea></div>
+        <div class="form-group"><label><i class="fas fa-image"></i> 题目图片</label><input type="file" name="imageFile"><div th:if="${question.imageUrl}"><img th:src="@{${question.imageUrl}}" style="max-height:120px; border-radius: 12px;"></div></div>
+        <button class="btn-primary" type="submit"><i class="fas fa-save"></i> 保存</button>
     </form>
 </div>
-<script>toggleOptions();</script>
 </body>
 </html>

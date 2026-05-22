@@ -61,8 +61,7 @@ public class QuestionImportService {
             } else if ("essay".equals(type)) {
                 parseEssay(block, q);
             }
-            // 默认分值给5分
-            q.setScore(5);
+            parseAnalysis(block, q);
             list.add(q);
         }
         return list;
@@ -109,6 +108,13 @@ public class QuestionImportService {
         String lastLine = block.substring(block.lastIndexOf("\n") + 1);
         String ans = extractAnswer(lastLine);
         q.setAnswer(ans != null ? ans : "");
+    }
+
+    private void parseAnalysis(String block, Question q) {
+        for (String line : block.split("\n")) {
+            if (line.contains("解析：")) { q.setAnalysis(line.substring(line.indexOf("解析：") + 3).trim()); return; }
+            if (line.contains("答案解析：")) { q.setAnalysis(line.substring(line.indexOf("答案解析：") + 5).trim()); return; }
+        }
     }
 
     private String extractAnswer(String line) {

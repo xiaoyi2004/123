@@ -3,37 +3,49 @@
 <head>
     <meta charset="UTF-8">
     <title>创建试卷</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link rel="stylesheet" th:href="@{/css/style.css}">
 </head>
 <body>
 <div class="container">
     <div class="header">
-        <h1>📄 创建试卷</h1>
-        <div class="nav-links">
-            <a href="/teacher/dashboard" class="btn">← 返回仪表盘</a>
-            <a href="/teacher/papers" class="btn">返回试卷列表</a>
-        </div>
+        <h1><i class="fas fa-plus-circle"></i> 创建试卷</h1>
+        <a class="btn" href="/teacher/papers"><i class="fas fa-arrow-left"></i> 返回试卷列表</a>
     </div>
+    <form method="get" action="/teacher/papers/add" class="grid">
+        <select name="type">
+            <option value="">全部题型</option>
+            <option value="single" th:selected="${selectedType=='single'}">单选题</option>
+            <option value="judge" th:selected="${selectedType=='judge'}">判断题</option>
+            <option value="fill" th:selected="${selectedType=='fill'}">填空题</option>
+            <option value="essay" th:selected="${selectedType=='essay'}">主观题</option>
+        </select>
+        <input name="subject" placeholder="科目" th:value="${selectedSubject}">
+        <button class="btn-primary" type="submit"><i class="fas fa-search"></i> 筛选题目</button>
+    </form>
     <form method="post" action="/teacher/papers/add">
-        <div class="form-group">
-            <label>试卷名称</label>
-            <input name="name" required>
+        <div class="form-group"><label><i class="fas fa-tag"></i> 试卷名称</label><input name="name" required></div>
+        <div class="form-group"><label><i class="fas fa-book"></i> 科目</label><input name="subject" th:value="${selectedSubject}" required></div>
+        <div class="form-group"><label><i class="fas fa-info-circle"></i> 说明</label><input name="description"></div>
+        <h3><i class="fas fa-list-ul"></i> 选择题目并赋分</h3>
+        <table>
+            <thead><tr><th>选择</th><th>题型</th><th>科目</th><th>题干</th><th>分值</th></tr></thead>
+            <tbody>
+            <tr th:each="q:${questions}">
+                <td data-label="选择"><input type="checkbox" name="questionIds" th:value="${q.id}"></td>
+                <td data-label="题型" th:text="${q.type}"></td>
+                <td data-label="科目" th:text="${q.subject}"></td>
+                <td data-label="题干" th:text="${q.title}"></td>
+                <td data-label="分值"><input type="number" min="0" th:name="'score_' + ${q.id}" value="5" style="width:90px"></td>
+            </tr>
+            </tbody>
+        </table>
+        <div class="pager" th:if="${questionPage != null}">
+            <a class="btn" th:if="${questionPage.hasPrevious()}" th:href="@{/teacher/papers/add(type=${selectedType},subject=${selectedSubject},page=${questionPage.number-1})}"><i class="fas fa-chevron-left"></i> 上一页</a>
+            <span th:text="${questionPage.number+1} + ' / ' + ${questionPage.totalPages==0?1:questionPage.totalPages}"></span>
+            <a class="btn" th:if="${questionPage.hasNext()}" th:href="@{/teacher/papers/add(type=${selectedType},subject=${selectedSubject},page=${questionPage.number+1})}">下一页 <i class="fas fa-chevron-right"></i></a>
         </div>
-        <div class="form-group">
-            <label>说明</label>
-            <input name="description">
-        </div>
-        <h3>选择题目（可多选，支持顺序）</h3>
-        <div class="checkbox-group">
-            <div th:each="q,stat : ${questions}" style="margin-right: 1rem;">
-                <label>
-                    <input type="checkbox" name="questionIds" th:value="${q.id}">
-                    <span th:text="${q.title}"></span>
-                    <input type="number" name="sortOrders" placeholder="顺序" style="width: 70px; margin-left: 8px;" th:value="${stat.index}">
-                </label>
-            </div>
-        </div>
-        <button type="submit" class="btn-primary">创建试卷</button>
+        <button class="btn-primary" type="submit"><i class="fas fa-save"></i> 创建试卷</button>
     </form>
 </div>
 </body>

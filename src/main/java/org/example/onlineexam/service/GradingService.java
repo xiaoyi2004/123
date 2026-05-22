@@ -1,5 +1,6 @@
 package org.example.onlineexam.service;
 
+import org.example.onlineexam.entity.PaperQuestion;
 import org.example.onlineexam.entity.Question;
 import org.springframework.stereotype.Service;
 import java.util.List;
@@ -7,35 +8,20 @@ import java.util.Map;
 
 @Service
 public class GradingService {
-
-    public int grade(List<Question> questions, Map<String, String> answers) {
+    public int gradeObjective(List<Question> questions, Map<Long, Integer> scoreMap, Map<String, String> answers) {
         int total = 0;
         for (Question q : questions) {
-            String studentAnswer = answers.get(String.valueOf(q.getId()));
-            if (studentAnswer == null) studentAnswer = "";
-            studentAnswer = studentAnswer.trim();
+            if ("essay".equals(q.getType())) continue;
+            String studentAnswer = answers.getOrDefault(String.valueOf(q.getId()), "").trim();
             String correctAnswer = q.getAnswer() == null ? "" : q.getAnswer().trim();
-
-            if ("essay".equals(q.getType())) {
-                if (containsAnyKeyword(studentAnswer, correctAnswer)) {
-                    total += q.getScore();
-                }
-            } else {
-                if (studentAnswer.equalsIgnoreCase(correctAnswer)) {
-                    total += q.getScore();
-                }
+            if (studentAnswer.equalsIgnoreCase(correctAnswer)) {
+                total += scoreMap.getOrDefault(q.getId(), 0);
             }
         }
         return total;
     }
-    private boolean containsAnyKeyword(String studentAnswer, String keywordStr) {
-        if (studentAnswer.isEmpty()) return false;
-        String[] keywords = keywordStr.split("[，,]+");  // 支持中英文逗号
-        for (String kw : keywords) {
-            if (studentAnswer.contains(kw.trim())) {
-                return true;
-            }
-        }
-        return false;
+
+    public boolean hasSubjective(List<Question> questions) {
+        return questions.stream().anyMatch(q -> "essay".equals(q.getType()));
     }
 }

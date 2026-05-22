@@ -1,69 +1,23 @@
 <!DOCTYPE html>
 <html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
 <head>
-  <meta charset="UTF-8">
-  <title>批量导入题目 - 在线考试系统</title>
-  <link rel="stylesheet" th:href="@{/css/style.css}">
+    <meta charset="UTF-8">
+    <title>批量导入题目</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" th:href="@{/css/style.css}">
 </head>
 <body>
 <div class="container">
-  <div class="header">
-    <h1>📂 批量导入题目</h1>
-    <div class="nav-links">
-        <a href="/teacher/dashboard" class="btn">← 返回仪表盘</a>
-        <a href="/teacher/questions" class="btn">← 返回题库</a>
-        <a href="/teacher/questions/add" class="btn-primary">+ 手动添加</a>
+    <div class="header">
+        <h1><i class="fas fa-upload"></i> 批量导入题目</h1>
+        <a class="btn" href="/teacher/questions"><i class="fas fa-arrow-left"></i> 返回</a>
     </div>
-  </div>
-
-  <div th:if="${error}" class="alert" th:text="${error}"></div>
-  <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
-
-  <div class="card">
-    <h3>📄 支持的文件格式</h3>
-    <ul>
-      <li><strong>.txt</strong> 或 <strong>.docx</strong> (Word文档)</li>
-      <li>每道题之间用<strong>空行</strong>隔开</li>
-      <li>单选题示例：
-        <pre>
-1. Java 的三大特性是什么？
-A. 封装
-B. 继承
-C. 多态
-D. 抽象
-答案：A
-                </pre>
-      </li>
-      <li>判断题示例：
-        <pre>
-2. Spring Boot 内置了 Tomcat。
-正确
-错误
-答案：正确
-                </pre>
-      </li>
-      <li>填空题示例：
-        <pre>
-3. HTML 的中文名称是 ______。
-答案：超文本标记语言
-                </pre>
-      </li>
-      <li>简答题示例：
-        <pre>
-4. 简述 RESTful 风格的特点。
-答案：使用HTTP方法表示操作，资源通过URL定位...
-                </pre>
-      </li>
-    </ul>
-  </div>
-
-  <form method="post" enctype="multipart/form-data" action="/teacher/questions/import">
-    <div class="form-group">
-      <label>选择文件（.txt 或 .docx）</label>
-      <input type="file" name="file" accept=".txt,.docx" required>
-    </div>
-    <button type="submit" class="btn-primary">开始智能导入</button>
-  </form>
+    <div th:if="${error}" class="alert" th:text="${error}"></div>
+    <form method="post" action="/teacher/questions/import" enctype="multipart/form-data">
+        <div class="form-group"><label><i class="fas fa-file-word"></i> 选择 .txt 或 .docx 文件</label><input type="file" name="file" required></div>
+        <button class="btn-primary" type="submit"><i class="fas fa-cloud-upload-alt"></i> 导入</button>
+    </form>
+    <div class="card"><i class="fas fa-info-circle"></i> 格式示例：题干、A./B./C./D. 选项、答案：A、解析：说明。</div>
 </div>
 </body>
 </html>

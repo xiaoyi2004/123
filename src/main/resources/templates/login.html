@@ -2,68 +2,30 @@
 <html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>在线考试系统 - 登录</title>
+    <title>登录 - 在线考试系统</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link rel="stylesheet" th:href="@{/css/style.css}">
-    <style>
-        .login-wrapper {
-            max-width: 480px;
-            margin: 0 auto;
-            padding: 2rem 0;
-        }
-        .logo {
-            text-align: center;
-            margin-bottom: 2rem;
-        }
-        .logo h2 {
-            font-size: 2rem;
-            background: linear-gradient(135deg, #2563eb, #4f46e5);
-            background-clip: text;
-            -webkit-background-clip: text;
-            color: transparent;
-        }
-        .demo-info {
-            margin-top: 2rem;
-            background: #f1f5f9;
-            padding: 1rem;
-            border-radius: 20px;
-            text-align: center;
-            font-size: 0.85rem;
-        }
-    </style>
 </head>
 <body>
 <div class="container" style="max-width: 500px;">
-    <div class="login-wrapper">
-        <div class="logo">
-            <h2>📚 在线考试系统</h2>
-            <p style="color: #64748b;">智能 · 便捷 · 高效</p>
-        </div>
-
-        <div th:if="${error}" class="alert" th:text="${error}"></div>
-
-        <form method="post" action="/login">
-            <div class="form-group">
-                <label>👤 用户名</label>
-                <input type="text" name="username" placeholder="请输入用户名" required autofocus>
-            </div>
-            <div class="form-group">
-                <label>🔒 密码</label>
-                <input type="password" name="password" placeholder="请输入密码" required>
-            </div>
-            <button type="submit" class="btn-primary" style="width:100%;">登 录</button>
-        </form>
-
-        <div class="demo-info">
-            <strong>测试账号</strong><br>
-            教师：teacher1 / 123456 &nbsp;|&nbsp;
-            学生：student1 / 123456
-        </div>
-
-        <div style="text-align: center; margin-top: 1rem;">
-            <a href="/register">还没有账号？立即注册</a>
-        </div>
+    <div class="header" style="border-bottom: none; text-align: center; justify-content: center;">
+        <h1><i class="fas fa-graduation-cap"></i> 在线考试系统</h1>
     </div>
+    <div th:if="${error}" class="alert" th:text="${error}"></div>
+    <form method="post" action="/login">
+        <div class="form-group">
+            <label><i class="fas fa-user"></i> 用户名</label>
+            <input name="username" required autofocus>
+        </div>
+        <div class="form-group">
+            <label><i class="fas fa-lock"></i> 密码</label>
+            <input name="password" type="password" required>
+        </div>
+        <div style="display: flex; gap: 1rem; justify-content: space-between; align-items: center;">
+            <button class="btn-primary" type="submit"><i class="fas fa-sign-in-alt"></i> 登录</button>
+            <a class="btn" href="/register"><i class="fas fa-user-plus"></i> 注册</a>
+        </div>
+    </form>
 </div>
 </body>
 </html>

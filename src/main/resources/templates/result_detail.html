@@ -2,43 +2,34 @@
 <html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>答卷详情 - 在线考试系统</title>
+    <title>成绩详情</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link rel="stylesheet" th:href="@{/css/style.css}">
 </head>
 <body>
 <div class="container">
     <div class="header">
-        <h1>📄 考试答卷详情</h1>
-        <div class="nav-links">
-            <a th:href="@{/student/results}" class="btn">← 返回成绩列表</a>
-            <a th:href="@{/teacher/results}" class="btn" th:if="${session.user.role == 'teacher'}">📊 全部成绩</a>
-            <a href="/logout" class="btn danger-btn">退出</a>
-        </div>
+        <h1><i class="fas fa-file-alt"></i> <span th:text="${exam.name}"></span> - 成绩详情</h1>
+        <a class="btn" th:href="${session.user.role=='teacher'?'/teacher/results':'/student/results'}"><i class="fas fa-arrow-left"></i> 返回</a>
     </div>
-
-    <div style="background: #f8fafc; padding: 1rem; border-radius: 20px; margin-bottom: 1.5rem;">
-        <p><strong>考试名称：</strong> <span th:text="${exam.name}"></span></p>
-        <p><strong>学生ID：</strong> <span th:text="${result.studentId}"></span>   
-            <strong>总分：</strong> <span th:text="${result.score}"></span> 分   
-            <strong>提交时间：</strong> <span th:text="${#temporals.format(result.submitTime, 'yyyy-MM-dd HH:mm:ss')}"></span></p>
+    <div class="card">
+        <i class="fas fa-user"></i> <b>学生：</b> <span th:text="${student?.realName}"></span>　
+        <i class="fas fa-school"></i> <b>班级：</b> <span th:text="${student?.className}"></span>　
+        <i class="fas fa-hashtag"></i> <b>学号：</b> <span th:text="${student?.studentNo}"></span>　
+        <i class="fas fa-star"></i> <b>总分：</b> <span th:text="${result.score}"></span>　
+        <i class="fas fa-check-circle"></i> <b>状态：</b> <span th:text="${result.gradeStatus}"></span>
     </div>
-
-    <div th:each="item,stat : ${details}" class="question-card">
-        <div class="question-title">
-            <span th:text="${stat.index + 1} + '. ' + ${item.question.title} + ' (' + ${item.question.score} + '分)'"></span>
-        </div>
-        <div style="margin-top: 8px;">
-            <div><strong>你的答案：</strong> <span th:text="${item.studentAnswer} != null ? ${item.studentAnswer} : '(未作答)'"
-                                                  th:class="${item.isCorrect} ? 'correct-answer' : 'wrong-answer'"></span></div>
-            <div><strong>正确答案：</strong> <span th:text="${item.correctAnswer}"></span></div>
-            <div><strong>得分：</strong> <span th:text="${item.score}"></span> 分</div>
-        </div>
+    <div th:each="d,stat:${details}" class="question-card">
+        <h3><span th:text="${stat.index+1} + '. ' + ${d.question.title}"></span><span class="badge" th:text="${d.score} + '/' + ${d.fullScore} + '分'"></span></h3>
+        <p th:if="${d.question.optionA}"><i class="fas fa-circle"></i> A. <span th:text="${d.question.optionA}"></span></p>
+        <p th:if="${d.question.optionB}"><i class="fas fa-circle"></i> B. <span th:text="${d.question.optionB}"></span></p>
+        <p th:if="${d.question.optionC}"><i class="fas fa-circle"></i> C. <span th:text="${d.question.optionC}"></span></p>
+        <p th:if="${d.question.optionD}"><i class="fas fa-circle"></i> D. <span th:text="${d.question.optionD}"></span></p>
+        <img th:if="${d.question.imageUrl}" th:src="@{${d.question.imageUrl}}" style="max-width:100%; max-height:180px; border-radius: 12px;">
+        <p><i class="fas fa-pencil-alt"></i> <b>我的回答：</b> <span th:text="${d.studentAnswer}"></span></p>
+        <p><i class="fas fa-check-double"></i> <b>正确/参考答案：</b> <span th:text="${d.correctAnswer}"></span></p>
+        <p><i class="fas fa-comment-dots"></i> <b>解析：</b> <span th:text="${d.question.analysis ?: '暂无解析'}"></span></p>
     </div>
-
-    <style>
-        .correct-answer { background: #dcfce7; padding: 2px 10px; border-radius: 60px; color: #166534; display: inline-block; }
-        .wrong-answer { background: #fee2e2; padding: 2px 10px; border-radius: 60px; color: #b91c1c; display: inline-block; }
-    </style>
 </div>
 </body>
 </html>

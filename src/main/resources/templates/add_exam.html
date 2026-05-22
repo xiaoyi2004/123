@@ -3,38 +3,35 @@
 <head>
     <meta charset="UTF-8">
     <title>发布考试</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link rel="stylesheet" th:href="@{/css/style.css}">
 </head>
 <body>
 <div class="container">
     <div class="header">
-        <h1>📅 发布新考试</h1>
-        <a href="/teacher/dashboard" class="btn">← 返回仪表盘</a>
+        <h1><i class="fas fa-calendar-plus"></i> 发布考试</h1>
+        <a class="btn" href="/teacher/dashboard"><i class="fas fa-tachometer-alt"></i> 返回工作台</a>
     </div>
     <form method="post" action="/teacher/exams/add">
+        <div class="form-group"><label><i class="fas fa-tag"></i> 考试名称</label><input name="name" required></div>
         <div class="form-group">
-            <label>考试名称</label>
-            <input name="name" required>
-        </div>
-        <div class="form-group">
-            <label>选择试卷</label>
-            <select name="paperId">
-                <option th:each="p : ${papers}" th:value="${p.id}" th:text="${p.name}"></option>
+            <label><i class="fas fa-file-alt"></i> 选择试卷</label>
+            <select name="paperId" required>
+                <option value="">--请选择--</option>
+                <option th:each="p:${papers}" th:value="${p.id}" th:text="${p.name} + ' (' + ${p.subject} + ')'"></option>
             </select>
         </div>
         <div class="form-group">
-            <label>时长（分钟）</label>
-            <input type="number" name="duration" value="60" min="1">
+            <label><i class="fas fa-users"></i> 考试班级（可多选）</label>
+            <div style="display: flex; flex-wrap: wrap; gap: 1rem;">
+                <label th:each="c:${classes}" style="display: inline-flex; align-items: center; gap: 0.3rem;">
+                    <input type="checkbox" name="classNamesList" th:value="${c}"> <span th:text="${c}"></span>
+                </label>
+            </div>
         </div>
-        <div class="form-group">
-            <label>开始时间</label>
-            <input type="datetime-local" name="startTime" required>
-        </div>
-        <div class="form-group">
-            <label>结束时间</label>
-            <input type="datetime-local" name="endTime" required>
-        </div>
-        <button type="submit" class="btn-primary">发布考试</button>
+        <div class="form-group"><label><i class="fas fa-hourglass-start"></i> 开始时间</label><input type="datetime-local" name="startTime" required></div>
+        <div class="form-group"><label><i class="fas fa-hourglass-end"></i> 结束时间</label><input type="datetime-local" name="endTime" required></div>
+        <button class="btn-primary" type="submit"><i class="fas fa-paper-plane"></i> 发布考试</button>
     </form>
 </div>
 </body>

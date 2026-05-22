@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import java.time.LocalDateTime;
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -19,37 +20,23 @@ import java.util.stream.Collectors;
 public class StudentController {
     private final ExamRepository examRepository;
     private final ExamResultRepository examResultRepository;
-
-    public StudentController(ExamRepository examRepository, ExamResultRepository examResultRepository) {
-        this.examRepository = examRepository;
-        this.examResultRepository = examResultRepository;
-    }
-
-    private User currentStudent(HttpSession session) {
-        User user = (User) session.getAttribute("user");
-        if (user == null || !"student".equals(user.getRole())) return null;
-        return user;
-    }
+    public StudentController(ExamRepository examRepository, ExamResultRepository examResultRepository) { this.examRepository = examRepository; this.examResultRepository = examResultRepository; }
+    private User currentStudent(HttpSession session) { User user = (User) session.getAttribute("user"); return user == null || !"student".equals(user.getRole()) ? null : user; }
 
     @GetMapping("/dashboard")
     public String dashboard(HttpSession session, Model model) {
-        if (currentStudent(session) == null) return "redirect:/login";
-        // 只显示进行中且当前时间在起止范围内的考试
+        User user = currentStudent(session); if (user == null) return "redirect:/login";
         LocalDateTime now = LocalDateTime.now();
-        List<Exam> availableExams = examRepository.findAll().stream()
-                .filter(e -> "进行中".equals(e.getStatus()) &&
-                        (e.getStartTime() == null || now.isAfter(e.getStartTime())) &&
-                        (e.getEndTime() == null || now.isBefore(e.getEndTime())))
-                .collect(Collectors.toList());
-        model.addAttribute("exams", availableExams);
-        return "student_dashboard";
+        List<Exam> availableExams = examRepository.findAll().stream().filter(e -> "进行中".equals(e.getStatus()) && (e.getStartTime()==null || now.isAfter(e.getStartTime())) && (e.getEndTime()==null || now.isBefore(e.getEndTime())) && classMatched(e.getClassNames(), user.getClassName())).collect(Collectors.toList());
+        model.addAttribute("student", user); model.addAttribute("exams", availableExams); return "student_dashboard";
     }
-
+    private boolean classMatched(String classNames, String studentClass) {
+        if (classNames == null || classNames.isBlank()) return true;
+        return Arrays.stream(classNames.split(",")).map(String::trim).anyMatch(c -> c.equals(studentClass));
+    }
     @GetMapping("/results")
     public String myResults(HttpSession session, Model model) {
-        User user = currentStudent(session);
-        if (user == null) return "redirect:/login";
-        model.addAttribute("results", examResultRepository.findByStudentId(user.getId()));
-        return "result";
+        User user = currentStudent(session); if (user == null) return "redirect:/login";
+        model.addAttribute("student", user); model.addAttribute("results", examResultRepository.findByStudentId(user.getId())); return "result";
     }
 }

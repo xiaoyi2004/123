@@ -2,88 +2,46 @@
 <html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>教师工作台 - 在线考试系统</title>
+    <title>教师工作台</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link rel="stylesheet" th:href="@{/css/style.css}">
-    <style>
-        .feature-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-            gap: 1.5rem;
-            margin-top: 2rem;
-        }
-        .feature-card {
-            background: white;
-            border-radius: 28px;
-            padding: 1.5rem;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            border: 1px solid #eef2ff;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.02);
-        }
-        .feature-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 20px 25px -12px rgba(0,0,0,0.1);
-            border-color: #cbd5e1;
-        }
-        .feature-icon {
-            font-size: 2.5rem;
-            margin-bottom: 0.75rem;
-        }
-        .feature-title {
-            font-weight: 700;
-            font-size: 1.2rem;
-            margin-bottom: 0.5rem;
-        }
-        .feature-desc {
-            font-size: 0.85rem;
-            color: #64748b;
-        }
-        .welcome {
-            background: linear-gradient(135deg, #f0f9ff, #e6f0ff);
-            border-radius: 28px;
-            padding: 1.5rem;
-            margin-bottom: 1rem;
-        }
-    </style>
 </head>
 <body>
 <div class="container">
     <div class="header">
-        <h1>👨‍🏫 教师工作台</h1>
-        <a href="/logout" class="btn danger-btn">退出登录</a>
+        <h1><i class="fas fa-chalkboard-teacher"></i> 教师工作台</h1>
+        <a href="/logout" class="btn btn-outline"><i class="fas fa-sign-out-alt"></i> 退出</a>
     </div>
-
-    <div class="welcome">
-        <h2>欢迎，<span th:text="${session.user.realName != null ? session.user.realName : session.user.username}"></span> 🎓</h2>
-        <p style="color: #475569;">请选择需要管理的功能</p>
-    </div>
-
+    <p>欢迎，<span th:text="${session.user.realName ?: session.user.username}"></span></p>
     <div class="feature-grid">
         <div class="feature-card" onclick="location.href='/teacher/questions'">
-            <div class="feature-icon">📚</div>
-            <div class="feature-title">题库管理</div>
-            <div class="feature-desc">增删改查试题</div>
+            <div class="feature-icon"><i class="fas fa-database"></i></div>
+            <h3>题库管理</h3>
+            <p>增删改查、题型/科目筛选、分页</p>
         </div>
         <div class="feature-card" onclick="location.href='/teacher/papers'">
-            <div class="feature-icon">📄</div>
-            <div class="feature-title">试卷管理</div>
-            <div class="feature-desc">创建、删除试卷</div>
+            <div class="feature-icon"><i class="fas fa-file-alt"></i></div>
+            <h3>试卷管理</h3>
+            <p>按题型组卷，创建时赋分</p>
         </div>
         <div class="feature-card" onclick="location.href='/teacher/exams/add'">
-            <div class="feature-icon">📅</div>
-            <div class="feature-title">发布考试</div>
-            <div class="feature-desc">设置考试时间、试卷</div>
+            <div class="feature-icon"><i class="fas fa-calendar-alt"></i></div>
+            <h3>发布考试</h3>
+            <p>按班级、科目发布</p>
+        </div>
+        <div class="feature-card" onclick="location.href='/teacher/grading'">
+            <div class="feature-icon"><i class="fas fa-pen-fancy"></i></div>
+            <h3>主观题批阅</h3>
+            <p>教师给分</p>
         </div>
         <div class="feature-card" onclick="location.href='/teacher/results'">
-            <div class="feature-icon">📊</div>
-            <div class="feature-title">成绩总览</div>
-            <div class="feature-desc">查看所有学生成绩</div>
+            <div class="feature-icon"><i class="fas fa-chart-line"></i></div>
+            <h3>成绩总览</h3>
+            <p>按班级查看</p>
         </div>
         <div class="feature-card" onclick="location.href='/teacher/questions/import'">
-            <div class="feature-icon">📂</div>
-            <div class="feature-title">批量导入</div>
-            <div class="feature-desc">快速导入试题</div>
+            <div class="feature-icon"><i class="fas fa-upload"></i></div>
+            <h3>批量导入</h3>
         </div>
     </div>
 </div>
