@@ -2,78 +2,41 @@
 <html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>注册 · 在线考试系统</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <title>注册</title>
     <link rel="stylesheet" th:href="@{/css/style.css}">
-    <style>
-        body {
-            background: linear-gradient(135deg, #e0e7ff 0%, #f8fafc 100%);
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .register-card {
-            max-width: 540px;
-            width: 100%;
-            margin: 1rem;
-            padding: 2rem;
-        }
-    </style>
     <script>
-        function toggleStudentFields() {
-            var role = document.getElementById('role').value;
-            var studentFields = document.getElementById('studentFields');
-            studentFields.style.display = (role === 'student') ? 'block' : 'none';
+        function toggleAdminKey() {
+            let role = document.getElementById('role').value;
+            document.getElementById('adminKeyDiv').style.display = (role === 'admin') ? 'block' : 'none';
         }
     </script>
 </head>
-<body onload="toggleStudentFields()">
-<div class="card register-card">
-    <div style="text-align: center; margin-bottom: 2rem;">
-        <i class="fas fa-user-plus" style="font-size: 2.5rem; color: #3b82f6;"></i>
-        <h1 style="margin-top: 0.5rem;">注册新账号</h1>
-    </div>
+<body>
+<div class="container" style="max-width:520px">
+    <h1>注册账号</h1>
     <div th:if="${error}" class="alert" th:text="${error}"></div>
     <form method="post" action="/register">
-        <div class="form-group">
-            <label><i class="fas fa-user"></i> 用户名</label>
-            <input name="username" placeholder="字母数字组合" required>
-        </div>
-        <div class="form-group">
-            <label><i class="fas fa-lock"></i> 密码 (至少3位)</label>
-            <input name="password" type="password" required>
-        </div>
-        <div class="form-group">
-            <label><i class="fas fa-id-card"></i> 真实姓名</label>
-            <input name="realName" placeholder="如：张三">
-        </div>
-        <div class="form-group">
-            <label><i class="fas fa-user-tag"></i> 角色</label>
-            <select name="role" id="role" onchange="toggleStudentFields()">
+        <div class="form-group"><label>用户名</label><input name="username" required></div>
+        <div class="form-group"><label>密码</label><input name="password" type="password" required></div>
+        <div class="form-group"><label>姓名</label><input name="realName"></div>
+        <div class="form-group"><label>角色</label>
+            <select name="role" id="role" onchange="toggleAdminKey()">
                 <option value="student">学生</option>
                 <option value="teacher">教师</option>
+                <option value="admin">管理员</option>
             </select>
         </div>
+        <div id="adminKeyDiv" style="display:none">
+            <div class="form-group"><label>管理员注册码</label><input name="adminKey"></div>
+        </div>
         <div id="studentFields">
-            <div class="form-group">
-                <label><i class="fas fa-school"></i> 班级</label>
-                <input name="className" list="classList" placeholder="如：计科2301">
-                <datalist id="classList">
-                    <option th:each="c : ${classes}" th:value="${c}"></option>
-                </datalist>
+            <div class="form-group"><label>班级</label><input name="className" list="classList" placeholder="如：计科2301">
+                <datalist id="classList"><option th:each="c:${classes}" th:value="${c}"></option></datalist>
             </div>
-            <div class="form-group">
-                <label><i class="fas fa-hashtag"></i> 学号</label>
-                <input name="studentNo" placeholder="学号">
-            </div>
+            <div class="form-group"><label>学号</label><input name="studentNo"></div>
         </div>
-        <button type="submit" class="btn-primary" style="width: 100%;">注册</button>
-        <div style="text-align: center; margin-top: 1rem;">
-            <a href="/login" class="btn-ghost" style="color: #3b82f6;">已有账号？去登录</a>
-        </div>
+        <button class="btn-primary">注册</button>
+        <a class="btn" href="/login">返回登录</a>
     </form>
 </div>
 </body>

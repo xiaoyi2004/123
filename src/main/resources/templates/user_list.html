@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>用户管理</title>
+  <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <h1>用户管理</h1>
+    <div>
+      <a class="btn" href="/admin/dashboard">返回</a>
+      <a class="btn-primary" href="/admin/users/form">新增用户</a>
+    </div>
+  </div>
+  <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
+  <table>
+    <thead>
+    <tr>
+      <th>ID</th><th>用户名</th><th>姓名</th><th>角色</th><th>班级</th><th>学号</th><th>操作</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:each="u : ${userPage.content}">
+      <td th:text="${u.id}"></td>
+      <td th:text="${u.username}"></td>
+      <td th:text="${u.realName}"></td>
+      <td th:text="${u.role}"></td>
+      <td th:text="${u.className}"></td>
+      <td th:text="${u.studentNo}"></td>
+      <td>
+        <a class="btn-outline" th:href="'/admin/users/form?id=' + ${u.id}">修改</a>
+        <form style="display:inline" method="post" th:action="'/admin/users/delete/' + ${u.id}" onsubmit="return confirm('确认删除？')">
+          <button class="btn-outline danger-btn">删除</button>
+        </form>
+      </td>
+    </tr>
+    </tbody>
+  </table>
+  <div class="pager">
+    <a class="btn" th:if="${userPage.hasPrevious()}" th:href="'/admin/users?page=' + ${userPage.number - 1}">上一页</a>
+    <span th:text="${userPage.number + 1} + ' / ' + ${userPage.totalPages}"></span>
+    <a class="btn" th:if="${userPage.hasNext()}" th:href="'/admin/users?page=' + ${userPage.number + 1}">下一页</a>
+  </div>
+</div>
+</body>
+</html>

@@ -82,3 +82,5 @@ INSERT INTO question(title,type,subject,option_a,option_b,option_c,option_d,answ
                                                                                                  ('Spring Boot 可以简化 Spring 应用开发。','judge','Java','正确','错误',NULL,NULL,'A','Spring Boot 通过自动配置简化开发。'),
                                                                                                  ('HTML 的中文名称是？','fill','Web',NULL,NULL,NULL,NULL,'超文本标记语言','HTML 是 HyperText Markup Language。'),
                                                                                                  ('请简述 MVC 三层职责。','essay','Java',NULL,NULL,NULL,NULL,'模型负责数据，视图负责展示，控制器负责请求分发。','按职责分离回答即可。');
+INSERT INTO sys_user(username,password,real_name,role) VALUES
+    ('admin','123456','系统管理员','admin');

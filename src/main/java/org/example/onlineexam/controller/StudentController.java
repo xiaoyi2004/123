@@ -20,15 +20,29 @@ import java.util.stream.Collectors;
 public class StudentController {
     private final ExamRepository examRepository;
     private final ExamResultRepository examResultRepository;
-    public StudentController(ExamRepository examRepository, ExamResultRepository examResultRepository) { this.examRepository = examRepository; this.examResultRepository = examResultRepository; }
-    private User currentStudent(HttpSession session) { User user = (User) session.getAttribute("user"); return user == null || !"student".equals(user.getRole()) ? null : user; }
+    public StudentController(ExamRepository examRepository, ExamResultRepository examResultRepository) {
+        this.examRepository = examRepository;
+        this.examResultRepository = examResultRepository;
+    }
+    private User currentStudent(HttpSession session) {
+        User user = (User) session.getAttribute("user");
+        return user == null || !"student".equals(user.getRole()) ? null : user;
+    }
 
     @GetMapping("/dashboard")
     public String dashboard(HttpSession session, Model model) {
-        User user = currentStudent(session); if (user == null) return "redirect:/login";
+        User user = currentStudent(session);
+        if (user == null) return "redirect:/login";
         LocalDateTime now = LocalDateTime.now();
-        List<Exam> availableExams = examRepository.findAll().stream().filter(e -> "进行中".equals(e.getStatus()) && (e.getStartTime()==null || now.isAfter(e.getStartTime())) && (e.getEndTime()==null || now.isBefore(e.getEndTime())) && classMatched(e.getClassNames(), user.getClassName())).collect(Collectors.toList());
-        model.addAttribute("student", user); model.addAttribute("exams", availableExams); return "student_dashboard";
+        List<Exam> availableExams = examRepository.findAll().stream()
+                .filter(e -> "进行中".equals(e.getStatus())
+                        && (e.getStartTime() == null || now.isAfter(e.getStartTime()))
+                        && (e.getEndTime() == null || now.isBefore(e.getEndTime()))
+                        && classMatched(e.getClassNames(), user.getClassName()))
+                .collect(Collectors.toList());
+        model.addAttribute("student", user);
+        model.addAttribute("exams", availableExams);
+        return "student_dashboard";
     }
     private boolean classMatched(String classNames, String studentClass) {
         if (classNames == null || classNames.isBlank()) return true;
@@ -36,7 +50,10 @@ public class StudentController {
     }
     @GetMapping("/results")
     public String myResults(HttpSession session, Model model) {
-        User user = currentStudent(session); if (user == null) return "redirect:/login";
-        model.addAttribute("student", user); model.addAttribute("results", examResultRepository.findByStudentId(user.getId())); return "result";
+        User user = currentStudent(session);
+        if (user == null) return "redirect:/login";
+        model.addAttribute("student", user);
+        model.addAttribute("results", examResultRepository.findByStudentId(user.getId()));
+        return "result";
     }
 }

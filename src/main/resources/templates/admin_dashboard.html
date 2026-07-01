@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>管理员控制台</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <h1>管理员面板</h1>
+        <a href="/logout" class="btn danger-btn">退出</a>
+    </div>
+    <div class="feature-grid">
+        <div class="feature-card" onclick="location.href='/admin/users'">
+            <div class="feature-icon">👥</div>
+            <h3>用户管理</h3>
+            <p>学生 / 教师 / 管理员</p>
+        </div>
+        <div class="feature-card" onclick="location.href='/teacher/questions'">
+            <div class="feature-icon">📚</div>
+            <h3>题库管理</h3>
+        </div>
+        <div class="feature-card" onclick="location.href='/teacher/papers'">
+            <div class="feature-icon">📄</div>
+            <h3>试卷管理</h3>
+        </div>
+        <div class="feature-card" onclick="location.href='/teacher/exams/add'">
+            <div class="feature-icon">📅</div>
+            <h3>发布考试</h3>
+        </div>
+        <div class="feature-card" onclick="location.href='/teacher/results'">
+            <div class="feature-icon">📊</div>
+            <h3>成绩总览</h3>
+        </div>
+        <div class="feature-card" onclick="location.href='/teacher/grading'">
+            <div class="feature-icon">✍️</div>
+            <h3>主观题批阅</h3>
+        </div>
+    </div>
+    <div class="card" style="margin-top: 20px">
+        <p>系统统计：用户数 <span th:text="${userCount}"></span>，考试数 <span th:text="${examCount}"></span>，成绩记录 <span th:text="${resultCount}"></span></p>
+    </div>
+</div>
+</body>
+</html>
