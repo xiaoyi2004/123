@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>成绩统计</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <h1><i class="fas fa-chart-line"></i> 成绩统计</h1>
+        <a class="btn" href="/teacher/dashboard"><i class="fas fa-arrow-left"></i> 返回</a>
+    </div>
+    <div class="card">
+        <form method="get" action="/teacher/statistics">
+            <div class="form-group">
+                <label>选择考试</label>
+                <select name="examId" onchange="this.form.submit()">
+                    <option value="">--请选择--</option>
+                    <option th:each="e : ${exams}" th:value="${e.id}" th:selected="${selectedExamId == e.id}" th:text="${e.name}"></option>
+                </select>
+            </div>
+        </form>
+    </div>
+    <div th:if="${stats != null}">
+        <div class="grid" style="grid-template-columns: repeat(4,1fr);">
+            <div class="card"><h3>平均分</h3><p style="font-size:2rem;" th:text="${#numbers.formatDecimal(stats.average, 0, 2)}"></p></div>
+            <div class="card"><h3>最高分</h3><p style="font-size:2rem;" th:text="${stats.max}"></p></div>
+            <div class="card"><h3>最低分</h3><p style="font-size:2rem;" th:text="${stats.min}"></p></div>
+            <div class="card"><h3>及格率</h3><p style="font-size:2rem;" th:text="${#numbers.formatDecimal(stats.passRate * 100, 0, 1)} + '%'"></p></div>
+        </div>
+        <div class="card">
+            <h3>分数段分布</h3>
+            <canvas id="segmentChart" width="400" height="200"></canvas>
+            <script>
+                var ctx = document.getElementById('segmentChart').getContext('2d');
+                var segments = /*[[${stats.segments}]]*/ {};
+                new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: Object.keys(segments),
+                        datasets: [{
+                            label: '人数',
+                            data: Object.values(segments),
+                            backgroundColor: 'rgba(79,70,229,0.6)'
+                        }]
+                    },
+                    options: {
+                        scales: { y: { beginAtZero: true } }
+                    }
+                });
+            </script>
+        </div>
+    </div>
+</div>
+</body>
+</html>

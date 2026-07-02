@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>班级表单</title>
+  <link rel="stylesheet" th:href="@{/css/style.css}">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <h1 th:text="${clazz.id == null ? '新增班级' : '修改班级'}"><i class="fas fa-users"></i></h1>
+    <a class="btn" href="/admin/clazzes"><i class="fas fa-arrow-left"></i> 返回</a>
+  </div>
+  <form method="post" th:action="@{/admin/clazzes/save}">
+    <input type="hidden" name="id" th:value="${clazz.id}">
+    <div class="form-group"><label>班级名称</label><input name="name" th:value="${clazz.name}" required></div>
+    <div class="form-group"><label>关联课程</label>
+      <select name="courseId">
+        <option value="">无</option>
+        <option th:each="c : ${courses}" th:value="${c.id}" th:selected="${clazz.courseId == c.id}" th:text="${c.name}"></option>
+      </select>
+    </div>
+    <button class="btn-primary"><i class="fas fa-save"></i> 保存</button>
+  </form>
+</div>
+</body>
+</html>

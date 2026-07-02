@@ -1,21 +1,65 @@
 <!DOCTYPE html>
-<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>题库管理</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link rel="stylesheet" th:href="@{/css/style.css}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <script>
+        function selectAll() {
+            var checkboxes = document.getElementsByName('questionIds');
+            var selectAll = document.getElementById('selectAll');
+            for (var i = 0; i < checkboxes.length; i++) {
+                checkboxes[i].checked = selectAll.checked;
+            }
+        }
+
+        function batchDelete() {
+            var selected = [];
+            var checkboxes = document.getElementsByName('questionIds');
+            for (var i = 0; i < checkboxes.length; i++) {
+                if (checkboxes[i].checked) {
+                    selected.push(checkboxes[i].value);
+                }
+            }
+            if (selected.length === 0) {
+                alert('请至少选择一道题目');
+                return;
+            }
+            if (!confirm('确认删除选中的 ' + selected.length + ' 道题目？')) {
+                return;
+            }
+            // 发送AJAX请求
+            fetch('/teacher/questions/batch-delete', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: 'ids=' + selected.join('&ids=')
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('成功删除 ' + data.deletedCount + ' 道题目，失败 ' + data.failedCount + ' 道（被试卷引用）');
+                        location.reload();
+                    } else {
+                        alert('操作失败：' + data.message);
+                    }
+                })
+                .catch(error => {
+                    alert('请求失败：' + error);
+                });
+        }
+    </script>
 </head>
 <body>
 <div class="container">
     <div class="header">
-        <h1><i class="fas fa-layer-group"></i> 题库管理</h1>
+        <h1><i class="fas fa-database"></i> 题库管理</h1>
         <div class="nav-links">
-            <a class="btn" href="/teacher/dashboard"><i class="fas fa-home"></i> 返回</a>
+            <a class="btn" href="/teacher/dashboard"><i class="fas fa-arrow-left"></i> 返回</a>
             <a class="btn-primary" href="/teacher/questions/add"><i class="fas fa-plus"></i> 新增题目</a>
-            <a class="btn" href="/teacher/questions/import"><i class="fas fa-upload"></i> 批量导入</a>
+            <a class="btn" href="/teacher/questions/import"><i class="fas fa-file-import"></i> 批量导入</a>
         </div>
     </div>
     <div th:if="${error}" class="alert" th:text="${error}"></div>
@@ -30,36 +74,48 @@
             <option value="essay" th:selected="${selectedType=='essay'}">主观题</option>
         </select>
         <input name="subject" placeholder="科目" th:value="${selectedSubject}">
-        <button class="btn-primary" type="submit"><i class="fas fa-search"></i> 筛选</button>
+        <button class="btn-primary"><i class="fas fa-filter"></i> 筛选</button>
     </form>
 
-    <div class="table-wrapper">
-        <table>
-            <thead>
-            <tr><th>ID</th><th>题型</th><th>科目</th><th>题干（摘要）</th><th>答案</th><th>操作</th></tr>
-            </thead>
-            <tbody>
-            <tr th:each="q : ${questions}">
-                <td th:text="${q.id}"></td>
-                <td><span class="badge" th:text="${q.type}"></span></td>
-                <td th:text="${q.subject}"></td>
-                <td th:text="${q.title.length() > 60 ? q.title.substring(0,60) + '...' : q.title}"></td>
-                <td th:text="${q.answer}"></td>
-                <td>
-                    <a class="btn-outline" th:href="@{/teacher/questions/view/{id}(id=${q.id})}"><i class="fas fa-eye"></i></a>
-                    <a class="btn-outline" th:href="@{/teacher/questions/edit/{id}(id=${q.id})}"><i class="fas fa-edit"></i></a>
-                    <form style="display:inline" method="post" th:action="@{/teacher/questions/delete/{id}(id=${q.id})}" onsubmit="return confirm('确认删除？')">
-                        <button class="btn-outline danger-btn"><i class="fas fa-trash"></i></button>
-                    </form>
-                </td>
-            </tr>
-            <tr th:if="${questions.empty}"><td colspan="6" style="text-align:center;">暂无题目，请先新增或导入</td></tr>
-            </tbody>
-        </table>
+    <table>
+        <thead>
+        <tr>
+            <th><input type="checkbox" id="selectAll" onclick="selectAll()"></th>
+            <th>ID</th>
+            <th>题型</th>
+            <th>科目</th>
+            <th>题干</th>
+            <th>答案</th>
+            <th>操作</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="q : ${questions}">
+            <td><input type="checkbox" name="questionIds" th:value="${q.id}"></td>
+            <td th:text="${q.id}"></td>
+            <td th:text="${q.type}"></td>
+            <td th:text="${q.subject}"></td>
+            <td th:text="${q.title}"></td>
+            <td th:text="${q.answer}"></td>
+            <td>
+                <a class="btn-outline" th:href="@{/teacher/questions/view/{id}(id=${q.id})}"><i class="fas fa-eye"></i> 查看</a>
+                <a class="btn-outline" th:href="@{/teacher/questions/edit/{id}(id=${q.id})}"><i class="fas fa-edit"></i> 修改</a>
+                <form style="display:inline" method="post" th:action="@{/teacher/questions/delete/{id}(id=${q.id})}" onsubmit="return confirm('确认删除？')">
+                    <button class="btn-outline danger-btn"><i class="fas fa-trash"></i> 删除</button>
+                </form>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+
+    <!-- 批量删除按钮 -->
+    <div style="margin-top: 10px;">
+        <button class="btn-primary" onclick="batchDelete()"><i class="fas fa-trash-alt"></i> 批量删除</button>
     </div>
-    <div class="pager" th:if="${questionPage != null}">
+
+    <div class="pager">
         <a class="btn" th:if="${questionPage.hasPrevious()}" th:href="@{/teacher/questions(type=${selectedType},subject=${selectedSubject},page=${questionPage.number-1})}"><i class="fas fa-chevron-left"></i> 上一页</a>
-        <span>第 <span th:text="${questionPage.number+1}"></span> / <span th:text="${questionPage.totalPages==0?1:questionPage.totalPages}"></span> 页</span>
+        <span th:text="${questionPage.number+1} + ' / ' + ${questionPage.totalPages==0?1:questionPage.totalPages}"></span>
         <a class="btn" th:if="${questionPage.hasNext()}" th:href="@{/teacher/questions(type=${selectedType},subject=${selectedSubject},page=${questionPage.number+1})}">下一页 <i class="fas fa-chevron-right"></i></a>
     </div>
 </div>

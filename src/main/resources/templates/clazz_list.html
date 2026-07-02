@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>班级管理</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <h1><i class="fas fa-users"></i> 班级管理</h1>
+        <div>
+            <a class="btn" href="/admin/dashboard"><i class="fas fa-arrow-left"></i> 返回</a>
+            <a class="btn-primary" href="/admin/clazzes/form"><i class="fas fa-plus"></i> 新增班级</a>
+        </div>
+    </div>
+    <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
+    <table>
+        <thead>
+        <tr>
+            <th>ID</th>
+            <th>班级名称</th>
+            <th>关联课程ID</th>
+            <th>关联课程名</th>
+            <th>操作</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="c : ${clazzes}">
+            <td th:text="${c.id}"></td>
+            <td th:text="${c.name}"></td>
+            <td th:text="${c.courseId}"></td>
+            <td>
+                <span th:each="course : ${courses}" th:if="${course.id == c.courseId}" th:text="${course.name}"></span>
+            </td>
+            <td>
+                <a class="btn-outline" th:href="'/admin/clazzes/form?id=' + ${c.id}"><i class="fas fa-edit"></i> 修改</a>
+                <form style="display:inline" method="post" th:action="'/admin/clazzes/delete/' + ${c.id}" onsubmit="return confirm('确认删除？')">
+                    <button class="btn-outline danger-btn"><i class="fas fa-trash"></i> 删除</button>
+                </form>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+</body>
+</html>

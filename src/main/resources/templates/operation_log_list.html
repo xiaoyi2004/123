@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>操作日志</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <h1><i class="fas fa-history"></i> 操作日志</h1>
+        <a class="btn" href="/admin/dashboard"><i class="fas fa-arrow-left"></i> 返回</a>
+    </div>
+    <form method="get" class="grid" style="margin-bottom:20px;">
+        <input name="username" placeholder="用户名" th:value="${username}">
+        <input name="module" placeholder="模块" th:value="${module}">
+        <button class="btn-primary"><i class="fas fa-filter"></i> 筛选</button>
+    </form>
+    <table>
+        <thead>
+        <tr>
+            <th>用户</th>
+            <th>模块</th>
+            <th>操作</th>
+            <th>路径</th>
+            <th>IP</th>
+            <th>结果</th>
+            <th>时间</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="log : ${logPage.content}">
+            <td th:text="${log.username}"></td>
+            <td th:text="${log.module}"></td>
+            <td th:text="${log.action}"></td>
+            <td th:text="${log.requestPath}"></td>
+            <td th:text="${log.ip}"></td>
+            <td>
+                <span th:if="${log.result == 1}" style="color:green;">成功</span>
+                <span th:if="${log.result == 0}" style="color:red;">失败</span>
+            </td>
+            <td th:text="${log.createdAt}"></td>
+        </tr>
+        </tbody>
+    </table>
+    <div class="pager">
+        <a class="btn" th:if="${logPage.hasPrevious()}" th:href="'/admin/logs?page=' + ${logPage.number - 1} + '&username=' + ${username} + '&module=' + ${module}"><i class="fas fa-chevron-left"></i> 上一页</a>
+        <span th:text="${logPage.number + 1} + ' / ' + ${logPage.totalPages}"></span>
+        <a class="btn" th:if="${logPage.hasNext()}" th:href="'/admin/logs?page=' + ${logPage.number + 1} + '&username=' + ${username} + '&module=' + ${module}">下一页 <i class="fas fa-chevron-right"></i></a>
+    </div>
+</div>
+</body>
+</html>

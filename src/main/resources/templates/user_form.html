@@ -4,28 +4,51 @@
     <meta charset="UTF-8">
     <title>编辑用户</title>
     <link rel="stylesheet" th:href="@{/css/style.css}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <script>
+        function toggleFields() {
+            let role = document.getElementById('role').value;
+            let labelNo = document.querySelector('label[for="studentNo"]');
+            let inputNo = document.getElementById('studentNo');
+            if (role === 'teacher') {
+                labelNo.textContent = '工号';
+                inputNo.placeholder = '请输入工号';
+            } else if (role === 'student') {
+                labelNo.textContent = '学号';
+                inputNo.placeholder = '请输入学号';
+            } else {
+                labelNo.textContent = '学号/工号';
+                inputNo.placeholder = '请输入学号或工号';
+            }
+        }
+    </script>
 </head>
-<body>
+<body onload="toggleFields()">
 <div class="container">
     <div class="header">
-        <h1 th:text="${user.id == null ? '新增用户' : '修改用户'}"></h1>
-        <a class="btn" href="/admin/users">返回</a>
+        <h1 th:text="${user.id == null ? '新增用户' : '修改用户'}"><i class="fas fa-user-edit"></i></h1>
+        <a class="btn" href="/admin/users"><i class="fas fa-arrow-left"></i> 返回</a>
     </div>
     <form method="post" th:action="@{/admin/users/save}">
         <input type="hidden" name="id" th:value="${user.id}">
-        <div class="form-group"><label>用户名</label><input name="username" th:value="${user.username}" required></div>
-        <div class="form-group"><label>密码</label><input name="password" type="password" placeholder="留空则不修改密码"></div>
-        <div class="form-group"><label>姓名</label><input name="realName" th:value="${user.realName}"></div>
-        <div class="form-group"><label>角色</label>
-            <select name="role">
+        <div class="form-group"><label><i class="fas fa-user"></i> 用户名</label><input name="username" th:value="${user.username}" required></div>
+        <div class="form-group"><label><i class="fas fa-lock"></i> 密码</label><input name="password" type="password" placeholder="留空则不修改密码"></div>
+        <div class="form-group"><label><i class="fas fa-id-card"></i> 姓名</label><input name="realName" th:value="${user.realName}"></div>
+        <div class="form-group"><label><i class="fas fa-user-tag"></i> 角色</label>
+            <select name="role" id="role" onchange="toggleFields()">
                 <option value="student" th:selected="${user.role == 'student'}">学生</option>
                 <option value="teacher" th:selected="${user.role == 'teacher'}">教师</option>
                 <option value="admin" th:selected="${user.role == 'admin'}">管理员</option>
             </select>
         </div>
-        <div class="form-group"><label>班级</label><input name="className" th:value="${user.className}"></div>
-        <div class="form-group"><label>学号</label><input name="studentNo" th:value="${user.studentNo}"></div>
-        <button class="btn-primary">保存</button>
+        <div class="form-group"><label><i class="fas fa-users"></i> 班级</label><input name="className" th:value="${user.className}"></div>
+        <div class="form-group">
+            <label for="studentNo" id="studentNoLabel">学号</label>
+            <input name="studentNo" id="studentNo" th:value="${user.studentNo}" placeholder="请输入学号/工号">
+        </div>
+        <div class="form-group"><label><i class="fas fa-phone"></i> 手机号</label><input name="phone" th:value="${user.phone}"></div>
+        <div class="form-group"><label><i class="fas fa-envelope"></i> 邮箱</label><input name="email" th:value="${user.email}"></div>
+        <button class="btn-primary"><i class="fas fa-save"></i> 保存</button>
     </form>
 </div>
 </body>

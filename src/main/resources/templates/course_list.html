@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>课程管理</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <h1><i class="fas fa-book"></i> 课程管理</h1>
+        <div>
+            <a class="btn" href="/admin/dashboard"><i class="fas fa-arrow-left"></i> 返回</a>
+            <a class="btn-primary" href="/admin/courses/form"><i class="fas fa-plus"></i> 新增课程</a>
+        </div>
+    </div>
+    <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
+    <table>
+        <thead>
+        <tr>
+            <th>ID</th>
+            <th>名称</th>
+            <th>编码</th>
+            <th>描述</th>
+            <th>负责教师ID</th>
+            <th>操作</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="c : ${courses}">
+            <td th:text="${c.id}"></td>
+            <td th:text="${c.name}"></td>
+            <td th:text="${c.code}"></td>
+            <td th:text="${c.description}"></td>
+            <td th:text="${c.teacherId}"></td>
+            <td>
+                <a class="btn-outline" th:href="'/admin/courses/form?id=' + ${c.id}"><i class="fas fa-edit"></i> 修改</a>
+                <form style="display:inline" method="post" th:action="'/admin/courses/delete/' + ${c.id}" onsubmit="return confirm('确认删除？')">
+                    <button class="btn-outline danger-btn"><i class="fas fa-trash"></i> 删除</button>
+                </form>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+</body>
+</html>

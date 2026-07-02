@@ -2,72 +2,152 @@
 <html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>考试中 · 请勿切屏</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <title>考试</title>
     <link rel="stylesheet" th:href="@{/css/style.css}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <style>
+        #timer {
+            position: sticky;
+            top: 0;
+            background: rgba(255,255,255,0.95);
+            backdrop-filter: blur(4px);
+            padding: 12px 20px;
+            border-radius: 16px;
+            border: 1px solid #e2e8f0;
+            text-align: center;
+            font-weight: 600;
+            z-index: 50;
+            margin-bottom: 24px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.04);
+        }
+        .question-card {
+            border-left: 4px solid #4F46E5;
+        }
+        .radio-option {
+            display: block;
+            margin: 8px 0;
+        }
+    </style>
 </head>
 <body>
 <div class="container">
     <div class="header">
         <h1 th:text="${exam.name}"></h1>
-        <div><i class="fas fa-user"></i> <span th:text="${student.realName}"></span> · <span th:text="${student.className}"></span></div>
+        <div>
+            <span>学生：</span><span th:text="${student.realName}"></span>
+            / <span th:text="${student.className}"></span>
+        </div>
     </div>
+
     <div id="timer">
-        <span><i class="fas fa-hourglass-half"></i> 剩余时间：<span id="clock">--:--</span></span>
-        <span><i class="fas fa-eye-slash"></i> 切屏次数：<span id="leaveCount">0</span></span>
+        <i class="fas fa-hourglass-half"></i>
+        剩余时间：<span id="timeDisplay">--:--</span>
+        <i class="fas fa-eye-slash" style="margin-left:20px;"></i>
+        切屏次数：<span id="leaveCount">0</span>
     </div>
+
     <form id="examForm" method="post" th:action="@{/exam/{id}/submit(id=${exam.id})}">
-        <div th:each="q,stat : ${questions}" class="question-card" style="margin-bottom: 1.5rem;">
-            <h3><span th:text="${stat.index+1} + '. ' + ${q.title}"></span> <span class="badge" th:text="${scoreMap.get(q.id)} + '分'"></span></h3>
-            <img th:if="${q.imageUrl}" th:src="@{${q.imageUrl}}" style="max-width: 100%; max-height: 180px; border-radius: 1rem; margin: 0.5rem 0;">
-            <div th:if="${q.type=='single'}">
-                <label class="radio-option" th:if="${q.optionA}"><input type="radio" th:name="'q_'+${q.id}" value="A"> A. <span th:text="${q.optionA}"></span></label>
-                <label class="radio-option" th:if="${q.optionB}"><input type="radio" th:name="'q_'+${q.id}" value="B"> B. <span th:text="${q.optionB}"></span></label>
-                <label class="radio-option" th:if="${q.optionC}"><input type="radio" th:name="'q_'+${q.id}" value="C"> C. <span th:text="${q.optionC}"></span></label>
-                <label class="radio-option" th:if="${q.optionD}"><input type="radio" th:name="'q_'+${q.id}" value="D"> D. <span th:text="${q.optionD}"></span></label>
+        <div th:each="q,stat : ${questions}" class="question-card">
+            <h3>
+                <span th:text="${stat.index+1} + '. ' + ${q.title}"></span>
+                <span class="badge" th:text="${scoreMap.get(q.id)} + '分'"></span>
+            </h3>
+            <img th:if="${q.imageUrl}" th:src="@{${q.imageUrl}}" style="max-width:100%;max-height:200px">
+
+            <!-- 单选题 -->
+            <div th:if="${q.type == 'single'}">
+                <label class="radio-option" th:if="${q.optionA}">
+                    <input type="radio" th:name="'q_'+${q.id}" value="A"
+                           th:checked="${answerMap.get(q.id) == 'A'}">
+                    A. <span th:text="${q.optionA}"></span>
+                </label>
+                <label class="radio-option" th:if="${q.optionB}">
+                    <input type="radio" th:name="'q_'+${q.id}" value="B"
+                           th:checked="${answerMap.get(q.id) == 'B'}">
+                    B. <span th:text="${q.optionB}"></span>
+                </label>
+                <label class="radio-option" th:if="${q.optionC}">
+                    <input type="radio" th:name="'q_'+${q.id}" value="C"
+                           th:checked="${answerMap.get(q.id) == 'C'}">
+                    C. <span th:text="${q.optionC}"></span>
+                </label>
+                <label class="radio-option" th:if="${q.optionD}">
+                    <input type="radio" th:name="'q_'+${q.id}" value="D"
+                           th:checked="${answerMap.get(q.id) == 'D'}">
+                    D. <span th:text="${q.optionD}"></span>
+                </label>
             </div>
-            <div th:if="${q.type=='judge'}">
-                <label class="radio-option"><input type="radio" th:name="'q_'+${q.id}" value="A"> 正确</label>
-                <label class="radio-option"><input type="radio" th:name="'q_'+${q.id}" value="B"> 错误</label>
+
+            <!-- 判断题 -->
+            <div th:if="${q.type == 'judge'}">
+                <label class="radio-option">
+                    <input type="radio" th:name="'q_'+${q.id}" value="A"
+                           th:checked="${answerMap.get(q.id) == 'A'}"> 正确
+                </label>
+                <label class="radio-option">
+                    <input type="radio" th:name="'q_'+${q.id}" value="B"
+                           th:checked="${answerMap.get(q.id) == 'B'}"> 错误
+                </label>
             </div>
-            <div th:if="${q.type=='fill'}">
-                <input type="text" th:name="'q_'+${q.id}" placeholder="请输入答案" class="form-group">
+
+            <!-- 填空题 -->
+            <div th:if="${q.type == 'fill'}">
+                <input type="text" th:name="'q_'+${q.id}" placeholder="请输入答案"
+                       th:value="${answerMap.get(q.id)}" style="width:100%;">
             </div>
-            <div th:if="${q.type=='essay'}">
-                <textarea th:name="'q_'+${q.id}" rows="4" placeholder="请在此输入你的回答..." style="width:100%; border-radius:1rem;"></textarea>
+
+            <!-- 主观题 -->
+            <div th:if="${q.type == 'essay'}">
+                <textarea th:name="'q_'+${q.id}" rows="5" placeholder="请输入主观题答案"
+                          style="width:100%;" th:text="${answerMap.get(q.id)}"></textarea>
             </div>
         </div>
-        <button type="submit" class="btn-primary" onclick="return confirm('确认提交试卷？提交后不可修改。')"><i class="fas fa-paper-plane"></i> 提交试卷</button>
+
+        <button class="btn-primary" onclick="return confirm('确认提交试卷？')">
+            <i class="fas fa-paper-plane"></i> 提交试卷
+        </button>
     </form>
 </div>
-<script>
-    let seconds = [[${exam.duration}]] * 60;
-    const timerSpan = document.getElementById('clock');
-    const form = document.getElementById('examForm');
-    const interval = setInterval(() => {
-        if (seconds <= 0) {
-            clearInterval(interval);
-            alert('考试时间已到，系统将自动交卷');
-            form.submit();
-        } else {
-            seconds--;
-            let m = Math.floor(seconds / 60);
-            let s = seconds % 60;
-            timerSpan.innerText = `${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
-        }
-    }, 1000);
 
+<script th:inline="javascript">
+    // 考试时长（秒）
+    let seconds = [[${exam.duration}]] * 60;
+    const timerDisplay = document.getElementById('timeDisplay');
+    const form = document.getElementById('examForm');
     let leaveCount = 0;
-    const leaveSpan = document.getElementById('leaveCount');
-    function recordTabSwitch() {
-        leaveCount++;
-        leaveSpan.innerText = leaveCount;
-        alert(`警告：检测到切屏行为，已记录 ${leaveCount} 次。请诚信考试！`);
+
+    // 倒计时
+    function updateTimer() {
+        if (seconds <= 0) {
+            timerDisplay.textContent = '00:00';
+            alert('考试时间到，系统将自动交卷');
+            form.submit();
+            return;
+        }
+        const m = Math.floor(seconds / 60);
+        const s = seconds % 60;
+        timerDisplay.textContent = String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
+        seconds--;
     }
-    document.addEventListener('visibilitychange', () => { if (document.hidden) recordTabSwitch(); });
-    window.addEventListener('blur', () => recordTabSwitch());
+    setInterval(updateTimer, 1000);
+    updateTimer();
+
+    // 防切屏
+    document.addEventListener('visibilitychange', function() {
+        if (document.hidden) {
+            leaveCount++;
+            document.getElementById('leaveCount').textContent = leaveCount;
+            alert('警告：考试期间请勿切屏！本次切屏已记录。');
+        }
+    });
+
+    window.addEventListener('blur', function() {
+        leaveCount++;
+        document.getElementById('leaveCount').textContent = leaveCount;
+    });
+
+    // 保存答案功能（自动保存到后端？这里可以使用 localStorage 临时保存，但不强制）
+    // 由于后端已支持保存到 StudentAnswer，刷新后会恢复，所以无需额外前端保存。
 </script>
 </body>
 </html>

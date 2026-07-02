@@ -1,48 +1,27 @@
 <!DOCTYPE html>
-<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>登录 · 在线考试系统</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <title>登录</title>
     <link rel="stylesheet" th:href="@{/css/style.css}">
-    <style>
-        body {
-            background: linear-gradient(135deg, #e0e7ff 0%, #f8fafc 100%);
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .login-card {
-            max-width: 440px;
-            width: 100%;
-            margin: 1rem;
-            padding: 2.5rem;
-        }
-    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 </head>
-<body>
-<div class="card login-card">
-    <div style="text-align: center; margin-bottom: 2rem;">
-        <i class="fas fa-graduation-cap" style="font-size: 3rem; color: #3b82f6;"></i>
-        <h1 style="margin-top: 0.75rem; font-size: 1.8rem;">在线考试系统</h1>
-        <p style="color: #64748b;">登录你的账户</p>
-    </div>
+<body class="auth-container">
+<div class="container">
+    <h1><i class="fas fa-graduation-cap"></i> 在线考试系统</h1>
     <div th:if="${error}" class="alert" th:text="${error}"></div>
     <form method="post" action="/login">
         <div class="form-group">
             <label><i class="fas fa-user"></i> 用户名</label>
-            <input name="username" placeholder="请输入用户名" required autofocus>
+            <input name="username" required>
         </div>
         <div class="form-group">
             <label><i class="fas fa-lock"></i> 密码</label>
-            <input name="password" type="password" placeholder="••••••" required>
+            <input name="password" type="password" required>
         </div>
-        <button type="submit" class="btn-primary" style="width: 100%;">登录</button>
-        <div style="text-align: center; margin-top: 1rem;">
-            <a href="/register" class="btn-ghost" style="color: #3b82f6;">还没有账号？立即注册</a>
+        <div style="display:flex; gap:12px; margin-top:8px;">
+            <button class="btn-primary" style="flex:1;"><i class="fas fa-sign-in-alt"></i> 登录</button>
+            <a class="btn" href="/register"><i class="fas fa-user-plus"></i> 注册</a>
         </div>
     </form>
 </div>

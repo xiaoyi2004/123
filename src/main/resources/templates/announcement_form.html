@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>公告表单</title>
+  <link rel="stylesheet" th:href="@{/css/style.css}">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <h1 th:text="${announcement.id == null ? '新增公告' : '修改公告'}"><i class="fas fa-bullhorn"></i></h1>
+    <a class="btn" href="/admin/announcements"><i class="fas fa-arrow-left"></i> 返回</a>
+  </div>
+  <form method="post" th:action="@{/admin/announcements/save}">
+    <input type="hidden" name="id" th:value="${announcement.id}">
+    <input type="hidden" name="status" th:value="${announcement.status != null ? announcement.status : 0}">
+    <div class="form-group"><label>标题</label><input name="title" th:value="${announcement.title}" required></div>
+    <div class="form-group"><label>内容</label><textarea name="content" rows="6" th:text="${announcement.content}"></textarea></div>
+    <button class="btn-primary"><i class="fas fa-save"></i> 保存</button>
+  </form>
+</div>
+</body>
+</html>

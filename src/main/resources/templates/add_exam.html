@@ -2,39 +2,103 @@
 <html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>发布考试</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link rel="stylesheet" th:href="@{/css/style.css}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <style>
+        .checkbox-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .checkbox-group label {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            background: #f1f5f9;
+            padding: 8px 14px;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .checkbox-group label:hover {
+            background: #e2e8f0;
+        }
+        .checkbox-group input[type="checkbox"] {
+            width: auto;
+            margin: 0;
+        }
+    </style>
 </head>
 <body>
 <div class="container">
     <div class="header">
-        <h1><i class="fas fa-calendar-alt"></i> 发布考试</h1>
-        <a class="btn" href="/teacher/dashboard"><i class="fas fa-home"></i> 返回</a>
+        <h1><i class="fas fa-calendar-plus"></i> 发布考试</h1>
+        <a class="btn" href="/teacher/dashboard"><i class="fas fa-arrow-left"></i> 返回</a>
     </div>
-    <div class="card">
-        <form method="post" action="/teacher/exams/add">
-            <div class="form-group"><label>考试名称</label><input name="name" required></div>
-            <div class="form-group"><label>选择试卷</label>
-                <select name="paperId" required>
-                    <option value="">-- 请选择 --</option>
-                    <option th:each="p : ${papers}" th:value="${p.id}" th:text="${p.name} + ' (' + p.subject + ')'"></option>
-                </select>
+    <form method="post" action="/teacher/exams/add">
+        <div class="form-group">
+            <label><i class="fas fa-tag"></i> 考试名称</label>
+            <input name="name" required>
+        </div>
+        <div class="form-group">
+            <label><i class="fas fa-file-alt"></i> 试卷</label>
+            <select name="paperId" required>
+                <option th:each="p : ${papers}" th:value="${p.id}" th:text="${p.name} + ' (' + ${p.subject} + ')'"></option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label><i class="fas fa-users"></i> 参考班级（可多选）</label>
+            <div class="checkbox-group">
+                <label th:each="c : ${classes}">
+                    <input type="checkbox" name="classNamesList" th:value="${c}">
+                    <span th:text="${c}"></span>
+                </label>
             </div>
-            <div class="form-group"><label>考试班级 (可多选)</label>
-                <select name="classNamesList" multiple size="4">
-                    <option th:each="c : ${classes}" th:value="${c}" th:text="${c}"></option>
-                </select>
-                <small class="muted">按住 Ctrl 键多选，留空则面向所有班级</small>
-            </div>
-            <div class="form-group"><label>开始时间</label><input type="datetime-local" name="startTime" required></div>
-            <div class="form-group"><label>结束时间</label><input type="datetime-local" name="endTime" required></div>
-            <div class="form-group"><label>考试时长 (分钟)</label><input type="number" name="duration" value="60" required></div>
-            <button class="btn-primary" type="submit"><i class="fas fa-play-circle"></i> 发布考试</button>
-        </form>
-    </div>
+            <small class="muted" style="display:block; margin-top:5px;">勾选需要参加考试的班级</small>
+        </div>
+        <div class="form-group">
+            <label><i class="fas fa-clock"></i> 开始时间</label>
+            <input type="datetime-local" name="startTime" required>
+        </div>
+        <div class="form-group">
+            <label><i class="fas fa-clock"></i> 结束时间</label>
+            <input type="datetime-local" name="endTime" required>
+        </div>
+        <div class="form-group">
+            <label><i class="fas fa-hourglass-half"></i> 时长（分钟）</label>
+            <input type="number" name="duration" value="60" required>
+        </div>
+        <div class="form-group">
+            <label><i class="fas fa-toggle-on"></i> 允许重复考试</label>
+            <select name="allowRepeat">
+                <option value="0">否</option>
+                <option value="1">是</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label><i class="fas fa-random"></i> 题目乱序</label>
+            <select name="shuffleQuestions">
+                <option value="0">否</option>
+                <option value="1">是</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label><i class="fas fa-eye"></i> 显示成绩</label>
+            <select name="showScore">
+                <option value="1">是</option>
+                <option value="0">否</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label><i class="fas fa-lightbulb"></i> 显示解析</label>
+            <select name="showAnalysis">
+                <option value="1">是</option>
+                <option value="0">否</option>
+            </select>
+        </div>
+        <button class="btn-primary"><i class="fas fa-paper-plane"></i> 发布考试</button>
+    </form>
 </div>
 </body>
 </html>

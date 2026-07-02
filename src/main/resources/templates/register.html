@@ -4,40 +4,64 @@
     <meta charset="UTF-8">
     <title>注册</title>
     <link rel="stylesheet" th:href="@{/css/style.css}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <script>
-        function toggleAdminKey() {
+        function toggleFields() {
             let role = document.getElementById('role').value;
-            document.getElementById('adminKeyDiv').style.display = (role === 'admin') ? 'block' : 'none';
+            let adminKeyDiv = document.getElementById('adminKeyDiv');
+            let studentFields = document.getElementById('studentFields');
+            let labelNo = document.querySelector('label[for="studentNo"]');
+
+            if (role === 'admin') {
+                adminKeyDiv.style.display = 'block';
+                studentFields.style.display = 'none';
+            } else if (role === 'teacher') {
+                adminKeyDiv.style.display = 'none';
+                studentFields.style.display = 'block';
+                labelNo.textContent = '工号';
+            } else {
+                adminKeyDiv.style.display = 'none';
+                studentFields.style.display = 'block';
+                labelNo.textContent = '学号';
+            }
         }
     </script>
 </head>
-<body>
-<div class="container" style="max-width:520px">
-    <h1>注册账号</h1>
-    <div th:if="${error}" class="alert" th:text="${error}"></div>
-    <form method="post" action="/register">
-        <div class="form-group"><label>用户名</label><input name="username" required></div>
-        <div class="form-group"><label>密码</label><input name="password" type="password" required></div>
-        <div class="form-group"><label>姓名</label><input name="realName"></div>
-        <div class="form-group"><label>角色</label>
-            <select name="role" id="role" onchange="toggleAdminKey()">
-                <option value="student">学生</option>
-                <option value="teacher">教师</option>
-                <option value="admin">管理员</option>
-            </select>
-        </div>
-        <div id="adminKeyDiv" style="display:none">
-            <div class="form-group"><label>管理员注册码</label><input name="adminKey"></div>
-        </div>
-        <div id="studentFields">
-            <div class="form-group"><label>班级</label><input name="className" list="classList" placeholder="如：计科2301">
-                <datalist id="classList"><option th:each="c:${classes}" th:value="${c}"></option></datalist>
+<body onload="toggleFields()">
+<div class="auth-container">
+    <div class="container">
+        <h1><i class="fas fa-user-plus"></i> 注册账号</h1>
+        <div th:if="${error}" class="alert" th:text="${error}"></div>
+        <form method="post" action="/register">
+            <div class="form-group"><label><i class="fas fa-user"></i> 用户名</label><input name="username" required></div>
+            <div class="form-group"><label><i class="fas fa-lock"></i> 密码</label><input name="password" type="password" required></div>
+            <div class="form-group"><label><i class="fas fa-id-card"></i> 姓名</label><input name="realName"></div>
+            <div class="form-group"><label><i class="fas fa-user-tag"></i> 角色</label>
+                <select name="role" id="role" onchange="toggleFields()">
+                    <option value="student">学生</option>
+                    <option value="teacher">教师</option>
+                    <option value="admin">管理员</option>
+                </select>
             </div>
-            <div class="form-group"><label>学号</label><input name="studentNo"></div>
-        </div>
-        <button class="btn-primary">注册</button>
-        <a class="btn" href="/login">返回登录</a>
-    </form>
+            <div id="adminKeyDiv" style="display:none">
+                <div class="form-group"><label><i class="fas fa-key"></i> 管理员注册码</label><input name="adminKey"></div>
+            </div>
+            <div id="studentFields">
+                <div class="form-group"><label><i class="fas fa-users"></i> 班级</label>
+                    <input name="className" list="classList" placeholder="如：计科2301">
+                    <datalist id="classList"><option th:each="c:${classes}" th:value="${c}"></option></datalist>
+                </div>
+                <div class="form-group">
+                    <label for="studentNo" id="studentNoLabel">学号</label>
+                    <input name="studentNo" id="studentNo" placeholder="请输入学号/工号">
+                </div>
+            </div>
+            <div style="display:flex; gap:12px; margin-top:8px;">
+                <button class="btn-primary" style="flex:1;"><i class="fas fa-user-check"></i> 注册</button>
+                <a class="btn" href="/login"><i class="fas fa-arrow-left"></i> 返回登录</a>
+            </div>
+        </form>
+    </div>
 </div>
 </body>
 </html>

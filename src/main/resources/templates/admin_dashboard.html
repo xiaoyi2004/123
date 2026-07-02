@@ -1,45 +1,58 @@
 <!DOCTYPE html>
-<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <title>管理员控制台</title>
     <link rel="stylesheet" th:href="@{/css/style.css}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 </head>
 <body>
 <div class="container">
     <div class="header">
-        <h1>管理员面板</h1>
-        <a href="/logout" class="btn danger-btn">退出</a>
+        <h1><i class="fas fa-user-shield"></i> 管理员面板</h1>
+        <a href="/logout" class="btn danger-btn"><i class="fas fa-sign-out-alt"></i> 退出</a>
     </div>
     <div class="feature-grid">
         <div class="feature-card" onclick="location.href='/admin/users'">
-            <div class="feature-icon">👥</div>
+            <div class="feature-icon"><i class="fas fa-users"></i></div>
             <h3>用户管理</h3>
-            <p>学生 / 教师 / 管理员</p>
+            <p class="muted">增删改查、禁用、重置密码、导入</p>
+        </div>
+        <div class="feature-card" onclick="location.href='/admin/courses'">
+            <div class="feature-icon"><i class="fas fa-book"></i></div>
+            <h3>课程管理</h3>
+            <p class="muted">维护课程信息</p>
+        </div>
+        <div class="feature-card" onclick="location.href='/admin/clazzes'">
+            <div class="feature-icon"><i class="fas fa-users"></i></div>
+            <h3>班级管理</h3>
+            <p class="muted">维护班级并关联课程</p>
+        </div>
+        <div class="feature-card" onclick="location.href='/admin/announcements'">
+            <div class="feature-icon"><i class="fas fa-bullhorn"></i></div>
+            <h3>公告管理</h3>
+            <p class="muted">发布、编辑公告</p>
+        </div>
+        <div class="feature-card" onclick="location.href='/admin/logs'">
+            <div class="feature-icon"><i class="fas fa-history"></i></div>
+            <h3>操作日志</h3>
+            <p class="muted">查询系统操作记录</p>
         </div>
         <div class="feature-card" onclick="location.href='/teacher/questions'">
-            <div class="feature-icon">📚</div>
-            <h3>题库管理</h3>
+            <div class="feature-icon"><i class="fas fa-database"></i></div>
+            <h3>题库管理（教师）</h3>
         </div>
         <div class="feature-card" onclick="location.href='/teacher/papers'">
-            <div class="feature-icon">📄</div>
-            <h3>试卷管理</h3>
+            <div class="feature-icon"><i class="fas fa-file-alt"></i></div>
+            <h3>试卷管理（教师）</h3>
         </div>
         <div class="feature-card" onclick="location.href='/teacher/exams/add'">
-            <div class="feature-icon">📅</div>
-            <h3>发布考试</h3>
-        </div>
-        <div class="feature-card" onclick="location.href='/teacher/results'">
-            <div class="feature-icon">📊</div>
-            <h3>成绩总览</h3>
-        </div>
-        <div class="feature-card" onclick="location.href='/teacher/grading'">
-            <div class="feature-icon">✍️</div>
-            <h3>主观题批阅</h3>
+            <div class="feature-icon"><i class="fas fa-calendar-plus"></i></div>
+            <h3>发布考试（教师）</h3>
         </div>
     </div>
-    <div class="card" style="margin-top: 20px">
-        <p>系统统计：用户数 <span th:text="${userCount}"></span>，考试数 <span th:text="${examCount}"></span>，成绩记录 <span th:text="${resultCount}"></span></p>
+    <div class="card" style="margin-top:20px">
+        <p><i class="fas fa-database"></i> 系统统计：用户数 <span th:text="${userCount}"></span>，课程数 <span th:text="${courseCount}"></span>，班级数 <span th:text="${clazzCount}"></span>，公告数 <span th:text="${announcementCount}"></span></p>
     </div>
 </div>
 </body>
