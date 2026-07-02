@@ -1,1 +1,118 @@
-<!DOCTYPE html><html lang="zh-CN" xmlns:th="http://www.thymeleaf.org"><head><meta charset="UTF-8"><title>录入/修改题目</title><link rel="stylesheet" th:href="@{/css/style.css}"><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"><script>function toggle(){let t=document.getElementById('typeSelect').value;document.getElementById('options').style.display=(t==='single')?'block':'none';document.getElementById('judgeHint').style.display=(t==='judge')?'block':'none';}</script></head><body onload="toggle()"><div class="container"><div class="header"><h1 th:text="${question.id==null?'新增题目':'修改题目'}"><i class="fas fa-pen"></i></h1><a class="btn" href="/teacher/questions"><i class="fas fa-arrow-left"></i> 返回</a></div><form method="post" enctype="multipart/form-data" th:action="${question.id==null}?@{/teacher/questions/add}:@{/teacher/questions/edit/{id}(id=${question.id})}"><div class="form-group"><label><i class="fas fa-tag"></i> 题型</label><select name="type" id="typeSelect" onchange="toggle()"><option value="single" th:selected="${question.type=='single'}">单选题</option><option value="judge" th:selected="${question.type=='judge'}">判断题</option><option value="fill" th:selected="${question.type=='fill'}">填空题</option><option value="essay" th:selected="${question.type=='essay'}">主观题</option></select></div><div class="form-group"><label><i class="fas fa-book"></i> 科目</label><input name="subject" th:value="${question.subject}" placeholder="如：Java"></div><div class="form-group"><label><i class="fas fa-question"></i> 题干</label><textarea name="title" rows="4" required th:text="${question.title}"></textarea></div><div id="options"><div class="grid"><input name="optionA" placeholder="A选项" th:value="${question.optionA}"><input name="optionB" placeholder="B选项" th:value="${question.optionB}"><input name="optionC" placeholder="C选项" th:value="${question.optionC}"><input name="optionD" placeholder="D选项" th:value="${question.optionD}"></div></div><div id="judgeHint" class="alert">判断题答案填写 A 表示正确，B 表示错误。</div><div class="form-group"><label><i class="fas fa-check"></i> 正确答案/参考答案</label><input name="answer" th:value="${question.answer}" required></div><div class="form-group"><label><i class="fas fa-lightbulb"></i> 答案解析</label><textarea name="analysis" rows="3" th:text="${question.analysis}"></textarea></div><div class="form-group"><label><i class="fas fa-image"></i> 题目图片</label><input type="file" name="imageFile"><div th:if="${question.imageUrl}"><img th:src="@{${question.imageUrl}}" style="max-height:120px"></div></div><button class="btn-primary"><i class="fas fa-save"></i> 保存</button></form></div></body></html>
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>录入/修改题目</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <script>
+        function toggleFields() {
+            let type = document.getElementById('typeSelect').value;
+            document.getElementById('optionsDiv').style.display = (type === 'single' || type === 'multiple_choice' || type === 'judge') ? 'block' : 'none';
+            document.getElementById('judgeHint').style.display = (type === 'judge') ? 'block' : 'none';
+            document.getElementById('codeDiv').style.display = (type === 'programming') ? 'block' : 'none';
+            document.getElementById('scoringRuleDiv').style.display = (type === 'multiple_choice' || type === 'programming') ? 'block' : 'none';
+        }
+    </script>
+</head>
+<body onload="toggleFields()">
+<div class="container">
+    <div class="header">
+        <h1 th:text="${question.id==null?'新增题目':'修改题目'}"><i class="fas fa-pen"></i></h1>
+        <a class="btn" th:href="@{/teacher/questions(page=${page})}"><i class="fas fa-arrow-left"></i> 返回</a>
+    </div>
+    <form method="post" enctype="multipart/form-data" th:action="${question.id==null}?@{/teacher/questions/add}:@{/teacher/questions/edit/{id}(id=${question.id})}">
+        <input type="hidden" name="page" th:value="${page}">
+        <div class="form-group">
+            <label><i class="fas fa-tag"></i> 题型</label>
+            <select name="type" id="typeSelect" onchange="toggleFields()">
+                <option value="single" th:selected="${question.type=='single'}">单选题</option>
+                <option value="multiple_choice" th:selected="${question.type=='multiple_choice'}">多选题</option>
+                <option value="judge" th:selected="${question.type=='judge'}">判断题</option>
+                <option value="fill" th:selected="${question.type=='fill'}">填空题</option>
+                <option value="essay" th:selected="${question.type=='essay'}">简答题</option>
+                <option value="analysis" th:selected="${question.type=='analysis'}">分析题</option>
+                <option value="programming" th:selected="${question.type=='programming'}">编程题</option>
+            </select>
+        </div>
+        <!-- 科目下拉：使用 courseList，并确保回显 -->
+        <div class="form-group">
+            <label><i class="fas fa-book"></i> 科目（课程）</label>
+            <select name="subject">
+                <option value="">请选择科目</option>
+                <option th:each="c : ${courseList}"
+                        th:value="${c.name}"
+                        th:selected="${question.subject != null && question.subject.equals(c.name)}"
+                        th:text="${c.name}"></option>
+            </select>
+            <!-- 如果当前 subject 不在课程列表中，显示一个提示 -->
+            <span th:if="${question.subject != null && !question.subject.isEmpty() && !#lists.contains(courseList.![name], question.subject)}"
+                  class="muted" style="color:orange;">
+                （当前科目「<span th:text="${question.subject}"></span>」不在课程列表中，请选择或添加课程）
+            </span>
+        </div>
+        <div class="form-group">
+            <label><i class="fas fa-layer-group"></i> 知识点</label>
+            <select name="knowledgePointId">
+                <option value="">无</option>
+                <option th:each="kp : ${knowledgePoints}" th:value="${kp.id}" th:selected="${question.knowledgePointId == kp.id}" th:text="${kp.name}"></option>
+            </select>
+            <span th:if="${question.knowledgePoint != null && question.knowledgePointId == null}" class="muted">（当前知识点：<span th:text="${question.knowledgePoint}"></span>）</span>
+        </div>
+        <div class="form-group">
+            <label><i class="fas fa-signal"></i> 难度（1-5）</label>
+            <input type="number" name="difficulty" min="1" max="5" th:value="${question.difficulty}" value="1">
+        </div>
+        <div class="form-group">
+            <label><i class="fas fa-question"></i> 题干</label>
+            <textarea name="title" rows="4" required th:text="${question.title}"></textarea>
+        </div>
+        <div id="optionsDiv">
+            <div class="grid">
+                <input name="optionA" placeholder="A选项" th:value="${question.optionA}">
+                <input name="optionB" placeholder="B选项" th:value="${question.optionB}">
+                <input name="optionC" placeholder="C选项" th:value="${question.optionC}">
+                <input name="optionD" placeholder="D选项" th:value="${question.optionD}">
+                <input name="optionE" placeholder="E选项（多选用）" th:value="${question.optionE}">
+            </div>
+        </div>
+        <div id="judgeHint" class="alert">判断题答案填写 A 表示正确，B 表示错误。</div>
+        <div id="scoringRuleDiv">
+            <div class="form-group">
+                <label><i class="fas fa-balance-scale"></i> 评分规则</label>
+                <select name="scoringRule">
+                    <option value="exact" th:selected="${question.scoringRule=='exact'}">完全匹配</option>
+                    <option value="partial" th:selected="${question.scoringRule=='partial'}">部分得分（少选得一半）</option>
+                    <option value="exact_wrong" th:selected="${question.scoringRule=='exact_wrong'}">错选不得分，少选得一半</option>
+                </select>
+            </div>
+        </div>
+        <div class="form-group">
+            <label><i class="fas fa-check"></i> 正确答案/参考答案</label>
+            <input name="answer" th:value="${question.answer}" required>
+            <span class="muted">多选题答案用逗号分隔，如：A,B,C</span>
+        </div>
+        <div id="codeDiv">
+            <div class="form-group">
+                <label><i class="fas fa-code"></i> 预置代码（编程题）</label>
+                <textarea name="codeSnippet" rows="5" th:text="${question.codeSnippet}"></textarea>
+            </div>
+            <div class="form-group">
+                <label><i class="fas fa-vial"></i> 测试用例（JSON格式）</label>
+                <textarea name="testCases" rows="3" th:text="${question.testCases}"></textarea>
+            </div>
+        </div>
+        <div class="form-group">
+            <label><i class="fas fa-lightbulb"></i> 答案解析</label>
+            <textarea name="analysis" rows="3" th:text="${question.analysis}"></textarea>
+        </div>
+        <div class="form-group">
+            <label><i class="fas fa-image"></i> 题目图片</label>
+            <input type="file" name="imageFile">
+            <div th:if="${question.imageUrl}"><img th:src="@{${question.imageUrl}}" style="max-height:120px"></div>
+        </div>
+        <button class="btn-primary"><i class="fas fa-save"></i> 保存</button>
+    </form>
+</div>
+</body>
+</html>

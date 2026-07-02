@@ -1,49 +1,31 @@
 <!DOCTYPE html>
-<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <title>考试</title>
     <link rel="stylesheet" th:href="@{/css/style.css}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <style>
-        #timer {
-            position: sticky;
-            top: 0;
-            background: rgba(255,255,255,0.95);
-            backdrop-filter: blur(4px);
-            padding: 12px 20px;
-            border-radius: 16px;
-            border: 1px solid #e2e8f0;
-            text-align: center;
-            font-weight: 600;
-            z-index: 50;
-            margin-bottom: 24px;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.04);
-        }
-        .question-card {
-            border-left: 4px solid #4F46E5;
-        }
-        .radio-option {
-            display: block;
-            margin: 8px 0;
-        }
+        #timer { position: sticky; top: 0; background: rgba(255,255,255,0.95); backdrop-filter: blur(4px); padding: 12px 20px; border-radius: 16px; border: 1px solid #e2e8f0; text-align: center; font-weight: 600; z-index: 50; margin-bottom: 24px; box-shadow: 0 4px 8px rgba(0,0,0,0.04); }
+        .question-card { border-left: 4px solid #4F46E5; margin-bottom: 20px; padding: 16px; }
+        .radio-option { display: block; margin: 8px 0; }
+        textarea, input[type="text"] { width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #cbd5e1; font-size: 0.95rem; }
+        .badge { display: inline-block; background: #eef2ff; color: #4F46E5; border-radius: 999px; padding: 2px 10px; font-size: 0.8rem; }
+        .btn-primary { background: #4F46E5; color: white; padding: 12px 24px; border-radius: 12px; border: none; font-weight: 600; cursor: pointer; }
+        .btn-primary:hover { background: #4338CA; }
+        .muted { color: #64748b; }
     </style>
 </head>
 <body>
 <div class="container">
     <div class="header">
         <h1 th:text="${exam.name}"></h1>
-        <div>
-            <span>学生：</span><span th:text="${student.realName}"></span>
-            / <span th:text="${student.className}"></span>
-        </div>
+        <div><span>学生：</span><span th:text="${student.realName}"></span> / <span th:text="${student.className}"></span></div>
     </div>
 
     <div id="timer">
-        <i class="fas fa-hourglass-half"></i>
-        剩余时间：<span id="timeDisplay">--:--</span>
-        <i class="fas fa-eye-slash" style="margin-left:20px;"></i>
-        切屏次数：<span id="leaveCount">0</span>
+        <i class="fas fa-hourglass-half"></i> 剩余时间：<span id="timeDisplay">--:--</span>
+        <i class="fas fa-eye-slash" style="margin-left:20px;"></i> 切屏次数：<span id="leaveCount">0</span>
     </div>
 
     <form id="examForm" method="post" th:action="@{/exam/{id}/submit(id=${exam.id})}">
@@ -58,65 +40,102 @@
             <div th:if="${q.type == 'single'}">
                 <label class="radio-option" th:if="${q.optionA}">
                     <input type="radio" th:name="'q_'+${q.id}" value="A"
-                           th:checked="${answerMap.get(q.id) == 'A'}">
+                           th:checked="${answerMap.get(q.id) != null and answerMap.get(q.id) == 'A'}">
                     A. <span th:text="${q.optionA}"></span>
                 </label>
                 <label class="radio-option" th:if="${q.optionB}">
                     <input type="radio" th:name="'q_'+${q.id}" value="B"
-                           th:checked="${answerMap.get(q.id) == 'B'}">
+                           th:checked="${answerMap.get(q.id) != null and answerMap.get(q.id) == 'B'}">
                     B. <span th:text="${q.optionB}"></span>
                 </label>
                 <label class="radio-option" th:if="${q.optionC}">
                     <input type="radio" th:name="'q_'+${q.id}" value="C"
-                           th:checked="${answerMap.get(q.id) == 'C'}">
+                           th:checked="${answerMap.get(q.id) != null and answerMap.get(q.id) == 'C'}">
                     C. <span th:text="${q.optionC}"></span>
                 </label>
                 <label class="radio-option" th:if="${q.optionD}">
                     <input type="radio" th:name="'q_'+${q.id}" value="D"
-                           th:checked="${answerMap.get(q.id) == 'D'}">
+                           th:checked="${answerMap.get(q.id) != null and answerMap.get(q.id) == 'D'}">
                     D. <span th:text="${q.optionD}"></span>
                 </label>
+            </div>
+
+            <!-- 多选题（安全处理） -->
+            <div th:if="${q.type == 'multiple_choice'}">
+                <div th:with="selected=${answerMap.get(q.id) != null ? answerMap.get(q.id) : ''}">
+                    <label class="radio-option" th:if="${q.optionA}">
+                        <input type="checkbox" th:name="'q_'+${q.id}" value="A"
+                               th:checked="${#strings.contains(selected, 'A')}">
+                        A. <span th:text="${q.optionA}"></span>
+                    </label>
+                    <label class="radio-option" th:if="${q.optionB}">
+                        <input type="checkbox" th:name="'q_'+${q.id}" value="B"
+                               th:checked="${#strings.contains(selected, 'B')}">
+                        B. <span th:text="${q.optionB}"></span>
+                    </label>
+                    <label class="radio-option" th:if="${q.optionC}">
+                        <input type="checkbox" th:name="'q_'+${q.id}" value="C"
+                               th:checked="${#strings.contains(selected, 'C')}">
+                        C. <span th:text="${q.optionC}"></span>
+                    </label>
+                    <label class="radio-option" th:if="${q.optionD}">
+                        <input type="checkbox" th:name="'q_'+${q.id}" value="D"
+                               th:checked="${#strings.contains(selected, 'D')}">
+                        D. <span th:text="${q.optionD}"></span>
+                    </label>
+                    <label class="radio-option" th:if="${q.optionE}">
+                        <input type="checkbox" th:name="'q_'+${q.id}" value="E"
+                               th:checked="${#strings.contains(selected, 'E')}">
+                        E. <span th:text="${q.optionE}"></span>
+                    </label>
+                </div>
+                <p class="muted">多选题答案用逗号分隔，如：A,B,C</p>
             </div>
 
             <!-- 判断题 -->
             <div th:if="${q.type == 'judge'}">
                 <label class="radio-option">
                     <input type="radio" th:name="'q_'+${q.id}" value="A"
-                           th:checked="${answerMap.get(q.id) == 'A'}"> 正确
+                           th:checked="${answerMap.get(q.id) != null and answerMap.get(q.id) == 'A'}"> 正确
                 </label>
                 <label class="radio-option">
                     <input type="radio" th:name="'q_'+${q.id}" value="B"
-                           th:checked="${answerMap.get(q.id) == 'B'}"> 错误
+                           th:checked="${answerMap.get(q.id) != null and answerMap.get(q.id) == 'B'}"> 错误
                 </label>
             </div>
 
             <!-- 填空题 -->
             <div th:if="${q.type == 'fill'}">
                 <input type="text" th:name="'q_'+${q.id}" placeholder="请输入答案"
-                       th:value="${answerMap.get(q.id)}" style="width:100%;">
+                       th:value="${answerMap.get(q.id) != null ? answerMap.get(q.id) : ''}" style="width:100%;">
             </div>
 
-            <!-- 主观题 -->
-            <div th:if="${q.type == 'essay'}">
-                <textarea th:name="'q_'+${q.id}" rows="5" placeholder="请输入主观题答案"
-                          style="width:100%;" th:text="${answerMap.get(q.id)}"></textarea>
+            <!-- 简答题、分析题、编程题 -->
+            <div th:if="${q.type == 'essay' or q.type == 'analysis' or q.type == 'programming'}">
+                <textarea th:name="'q_'+${q.id}" rows="5" placeholder="请在此输入答案..."
+                          style="width:100%;" th:text="${answerMap.get(q.id) != null ? answerMap.get(q.id) : ''}"></textarea>
+                <!-- 安全判断代码块 -->
+                <div th:if="${q.type == 'programming' and q.codeSnippet != null}">
+                    <p class="muted">预置代码：</p>
+                    <pre th:text="${q.codeSnippet}" style="background:#f1f5f9;padding:10px;border-radius:8px;"></pre>
+                </div>
             </div>
         </div>
 
-        <button class="btn-primary" onclick="return confirm('确认提交试卷？')">
-            <i class="fas fa-paper-plane"></i> 提交试卷
+        <!-- 交卷按钮 -->
+        <button type="submit" class="btn-primary" onclick="return confirm('确认提交试卷？')">
+            <i class="fas fa-paper-plane"></i> 交卷
         </button>
     </form>
 </div>
 
 <script th:inline="javascript">
-    // 考试时长（秒）
     let seconds = [[${exam.duration}]] * 60;
     const timerDisplay = document.getElementById('timeDisplay');
     const form = document.getElementById('examForm');
     let leaveCount = 0;
+    const leaveCountSpan = document.getElementById('leaveCount');
 
-    // 倒计时
     function updateTimer() {
         if (seconds <= 0) {
             timerDisplay.textContent = '00:00';
@@ -132,22 +151,17 @@
     setInterval(updateTimer, 1000);
     updateTimer();
 
-    // 防切屏
     document.addEventListener('visibilitychange', function() {
         if (document.hidden) {
             leaveCount++;
-            document.getElementById('leaveCount').textContent = leaveCount;
+            leaveCountSpan.textContent = leaveCount;
             alert('警告：考试期间请勿切屏！本次切屏已记录。');
         }
     });
-
     window.addEventListener('blur', function() {
         leaveCount++;
-        document.getElementById('leaveCount').textContent = leaveCount;
+        leaveCountSpan.textContent = leaveCount;
     });
-
-    // 保存答案功能（自动保存到后端？这里可以使用 localStorage 临时保存，但不强制）
-    // 由于后端已支持保存到 StudentAnswer，刷新后会恢复，所以无需额外前端保存。
 </script>
 </body>
 </html>

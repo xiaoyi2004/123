@@ -14,6 +14,10 @@
             <a class="btn" href="/student/results"><i class="fas fa-chart-bar"></i> 我的成绩</a>
             <a class="btn" href="/student/wrong-questions"><i class="fas fa-exclamation-triangle"></i> 错题解析</a>
             <a class="btn" href="/student/announcements"><i class="fas fa-bullhorn"></i> 公告</a>
+            <a class="btn" href="/notification/list">
+                <i class="fas fa-bell"></i> 通知
+                <span th:if="${unreadCount > 0}" class="badge" style="background:#ef4444;color:white;" th:text="${unreadCount}"></span>
+            </a>
             <a class="btn danger-btn" href="/logout"><i class="fas fa-sign-out-alt"></i> 退出</a>
         </div>
     </div>

@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>智能组卷</title>
+  <link rel="stylesheet" th:href="@{/css/style.css}">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <style>
+    .config-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    .config-section { background: #f8fafc; padding: 20px; border-radius: 12px; border: 1px solid #e2e8f0; margin-bottom: 20px; }
+    .config-section h3 { margin-top: 0; font-size: 1.1rem; }
+    .config-item { display: flex; align-items: center; gap: 12px; margin: 10px 0; flex-wrap: wrap; }
+    .config-item label { min-width: 90px; font-weight: 500; }
+    .config-item input[type="number"] { width: 90px; padding: 8px 12px; font-size: 1rem; }
+    .config-item select { flex: 1; min-width: 200px; padding: 8px 12px; font-size: 1rem; }
+    .config-item select[multiple] { height: 120px; }
+    .form-actions { margin-top: 20px; display: flex; gap: 12px; flex-wrap: wrap; }
+    .type-group, .diff-group { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 8px; }
+    .type-group .config-item, .diff-group .config-item { margin: 0; }
+    .type-group .config-item input, .diff-group .config-item input { width: 80px; }
+    .alert { padding: 12px; border-radius: 8px; margin: 10px 0; }
+    .alert-info { background: #e0f2fe; border: 1px solid #7dd3fc; color: #0369a1; }
+    .alert-success { background: #dcfce7; border: 1px solid #86efac; color: #166534; }
+    .alert-danger { background: #fee2e2; border: 1px solid #fca5a5; color: #991b1b; }
+  </style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <h1><i class="fas fa-robot"></i> 智能组卷</h1>
+    <div class="nav-links">
+      <a class="btn" href="/teacher/dashboard"><i class="fas fa-arrow-left"></i> 返回工作台</a>
+      <a class="btn" href="/teacher/papers"><i class="fas fa-list"></i> 试卷列表</a>
+    </div>
+  </div>
+
+  <!-- 提示区域 -->
+  <div id="messageBox" class="alert alert-info" style="display:none;"></div>
+
+  <form id="autoForm" onsubmit="return false;">
+    <!-- 基本信息 -->
+    <div class="config-grid">
+      <div class="config-section">
+        <h3><i class="fas fa-info-circle"></i> 基本信息</h3>
+        <div class="config-item">
+          <label>试卷名称</label>
+          <input type="text" id="paperName" required style="flex:1; padding:10px; font-size:1rem;">
+        </div>
+        <div class="config-item">
+          <label>课程</label>
+          <select id="subject" style="flex:1; padding:10px; font-size:1rem;">
+            <option th:each="c : ${courses}" th:value="${c.name}" th:text="${c.name}"></option>
+          </select>
+        </div>
+        <div class="config-item">
+          <label>总分</label>
+          <input type="number" id="totalScore" value="100" min="1" step="1" style="width:120px; padding:10px; font-size:1rem;">
+        </div>
+      </div>
+
+      <!-- 知识点选择 -->
+      <div class="config-section">
+        <h3><i class="fas fa-tags"></i> 知识点范围（可多选）</h3>
+        <div class="config-item">
+          <label>知识点</label>
+          <select id="knowledgePoints" multiple style="flex:1; padding:10px; font-size:1rem; height:150px;">
+            <option th:each="kp : ${knowledgePoints}" th:value="${kp.id}" th:text="${kp.name}"></option>
+          </select>
+        </div>
+        <p class="muted" style="font-size:0.9rem;">按住 Ctrl 键可多选，不选则使用全部知识点</p>
+      </div>
+    </div>
+
+    <!-- 题型分布 -->
+    <div class="config-section">
+      <h3><i class="fas fa-list"></i> 题型数量分布</h3>
+      <div class="type-group">
+        <div th:each="type : ${questionTypes}" class="config-item">
+          <label th:text="${type}"></label>
+          <input type="number" th:id="'type_' + ${type}" min="0" value="0" step="1">
+        </div>
+      </div>
+      <p class="muted" style="font-size:0.9rem;">填写每种题型所需的题目数量，总题量将自动计算</p>
+    </div>
+
+    <!-- 难度分布 -->
+    <div class="config-section">
+      <h3><i class="fas fa-signal"></i> 难度分布（1-5级）</h3>
+      <div class="diff-group">
+        <div th:each="i : ${#numbers.sequence(1, 5)}" class="config-item">
+          <label>难度 [[${i}]]</label>
+          <input type="number" th:id="'diff_' + ${i}" min="0" value="0" step="1">
+        </div>
+      </div>
+      <p class="muted" style="font-size:0.9rem;">填写每个难度级别的题目数量</p>
+    </div>
+
+    <!-- 操作按钮 -->
+    <div class="form-actions">
+      <button type="button" class="btn-primary" onclick="generatePaper()" style="padding:12px 24px; font-size:1.1rem;"><i class="fas fa-magic"></i> 生成试卷</button>
+      <button type="reset" class="btn" onclick="resetForm()" style="padding:12px 24px; font-size:1.1rem;"><i class="fas fa-undo"></i> 重置</button>
+    </div>
+  </form>
+
+  <div id="resultArea" style="margin-top:20px;"></div>
+</div>
+
+<script>
+  function showMessage(msg, type) {
+    var box = document.getElementById('messageBox');
+    box.style.display = 'block';
+    box.className = 'alert alert-' + type;
+    box.textContent = msg;
+  }
+
+  function hideMessage() {
+    document.getElementById('messageBox').style.display = 'none';
+  }
+
+  function generatePaper() {
+    hideMessage();
+    var paperName = document.getElementById('paperName').value.trim();
+    if (!paperName) {
+      showMessage('请输入试卷名称', 'danger');
+      return;
+    }
+    var subject = document.getElementById('subject').value;
+    var totalScore = parseInt(document.getElementById('totalScore').value) || 100;
+
+    // 收集题型分布
+    var typeCountMap = {};
+    var typeInputs = document.querySelectorAll('[id^="type_"]');
+    typeInputs.forEach(function(inp) {
+      var val = parseInt(inp.value) || 0;
+      var type = inp.id.replace('type_', '');
+      if (val > 0) typeCountMap[type] = val;
+    });
+
+    // 收集难度分布
+    var difficultyMap = {};
+    var diffInputs = document.querySelectorAll('[id^="diff_"]');
+    diffInputs.forEach(function(inp) {
+      var val = parseInt(inp.value) || 0;
+      var diff = parseInt(inp.id.replace('diff_', ''));
+      if (val > 0) difficultyMap[diff] = val;
+    });
+
+    // 收集知识点
+    var kpSelect = document.getElementById('knowledgePoints');
+    var knowledgePointIds = [];
+    for (var i = 0; i < kpSelect.options.length; i++) {
+      if (kpSelect.options[i].selected) {
+        knowledgePointIds.push(parseInt(kpSelect.options[i].value));
+      }
+    }
+
+    // 构造请求体
+    var payload = {
+      paperName: paperName,
+      subject: subject,
+      totalScore: totalScore,
+      typeCountMap: typeCountMap,
+      difficultyMap: difficultyMap,
+      knowledgePointIds: knowledgePointIds.length > 0 ? knowledgePointIds : null
+    };
+
+    // 显示加载状态
+    var resultDiv = document.getElementById('resultArea');
+    resultDiv.innerHTML = '<div class="alert alert-info">⏳ 正在生成...</div>';
+
+    // 发送请求
+    fetch('/teacher/papers/auto/generate', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(payload)
+    })
+            .then(function(response) {
+              if (!response.ok) {
+                return response.text().then(function(text) {
+                  throw new Error('服务器响应异常: ' + response.status + ' ' + text);
+                });
+              }
+              return response.json();
+            })
+            .then(function(data) {
+              if (data.success) {
+                resultDiv.innerHTML = '<div class="alert alert-success">✅ ' + data.message +
+                        ' <a href="/teacher/papers" class="btn btn-primary">查看试卷</a></div>';
+              } else {
+                resultDiv.innerHTML = '<div class="alert alert-danger">❌ ' + data.message + '</div>';
+              }
+            })
+            .catch(function(error) {
+              resultDiv.innerHTML = '<div class="alert alert-danger">❌ 请求失败：' + error.message + '</div>';
+              console.error('Fetch error:', error);
+            });
+  }
+
+  function resetForm() {
+    document.getElementById('paperName').value = '';
+    document.getElementById('totalScore').value = 100;
+    document.querySelectorAll('input[type="number"]').forEach(function(inp) { inp.value = '0'; });
+    document.getElementById('knowledgePoints').selectedIndex = -1;
+    document.getElementById('resultArea').innerHTML = '';
+    hideMessage();
+  }
+
+  // 调试信息：确认函数已加载
+  console.log('智能组卷页面已加载，generatePaper 函数已定义');
+</script>
+</body>
+</html>

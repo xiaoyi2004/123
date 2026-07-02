@@ -1,1 +1,67 @@
-<!DOCTYPE html><html lang="zh-CN" xmlns:th="http://www.thymeleaf.org"><head><meta charset="UTF-8"><title>批量导入</title><link rel="stylesheet" th:href="@{/css/style.css}"><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"></head><body><div class="container"><div class="header"><h1><i class="fas fa-file-import"></i> 批量导入题目</h1><a class="btn" href="/teacher/questions"><i class="fas fa-arrow-left"></i> 返回</a></div><div th:if="${error}" class="alert" th:text="${error}"></div><form method="post" action="/teacher/questions/import" enctype="multipart/form-data"><div class="form-group"><label><i class="fas fa-file"></i> 选择 txt/docx 文件</label><input type="file" name="file" required></div><button class="btn-primary"><i class="fas fa-upload"></i> 导入</button></form><div class="card"><p><i class="fas fa-info-circle"></i> 格式示例：题干、A./B./C./D. 选项、答案：A、解析：说明。</p></div></div></body></html>
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>批量导入</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <h1><i class="fas fa-file-import"></i> 批量导入题目</h1>
+        <a class="btn" href="/teacher/questions"><i class="fas fa-arrow-left"></i> 返回</a>
+    </div>
+
+    <div th:if="${error}" class="alert" th:text="${error}"></div>
+    <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
+
+    <form method="post" action="/teacher/questions/import" enctype="multipart/form-data">
+        <div class="form-group">
+            <label><i class="fas fa-file"></i> 选择文件（支持 .txt, .docx, .xlsx）</label>
+            <input type="file" name="file" required>
+        </div>
+        <button class="btn-primary"><i class="fas fa-upload"></i> 导入</button>
+    </form>
+
+    <div class="card">
+        <h3><i class="fas fa-info-circle"></i> 支持格式说明</h3>
+        <h4>📄 文本文件（.txt / .docx）</h4>
+        <p>每道题用空行分隔，支持以下字段（可使用冒号分隔）：</p>
+        <pre style="background:#f1f5f9;padding:12px;border-radius:8px;">
+题型：单选题
+科目：Java
+知识点：面向对象
+难度：3
+题干：Java中哪个关键字用于定义类？
+A. class
+B. public
+C. static
+D. void
+答案：A
+解析：class用于声明类。
+        </pre>
+        <p>自动识别题型（单选、多选、判断、填空、简答、分析、编程），若未指定则自动检测。</p>
+
+        <h4>📊 Excel文件（.xlsx）</h4>
+        <p>第一行为标题行，从第二行开始每行一道题，列顺序为：</p>
+        <table class="table" style="border:1px solid #e5e7eb;font-size:0.9rem;">
+            <tr><th>列</th><th>字段</th><th>必填</th><th>示例</th></tr>
+            <tr><td>1</td><td>题型</td><td>否</td><td>单选题 / 多选题 / 判断题 / 填空题 / 简答题 / 分析题 / 编程题</td></tr>
+            <tr><td>2</td><td>科目</td><td>否</td><td>Java</td></tr>
+            <tr><td>3</td><td>知识点</td><td>否</td><td>面向对象</td></tr>
+            <tr><td>4</td><td>难度</td><td>否</td><td>3</td></tr>
+            <tr><td>5</td><td>题干</td><td>是</td><td>Java中哪个关键字用于定义类？</td></tr>
+            <tr><td>6</td><td>选项A</td><td>选择题需提供</td><td>class</td></tr>
+            <tr><td>7</td><td>选项B</td><td>同上</td><td>public</td></tr>
+            <tr><td>8</td><td>选项C</td><td>同上</td><td>static</td></tr>
+            <tr><td>9</td><td>选项D</td><td>同上</td><td>void</td></tr>
+            <tr><td>10</td><td>选项E</td><td>多选用</td><td>（留空）</td></tr>
+            <tr><td>11</td><td>答案</td><td>是</td><td>A 或 A,B,C</td></tr>
+            <tr><td>12</td><td>解析</td><td>否</td><td>class用于声明类。</td></tr>
+        </table>
+        <p><i class="fas fa-download"></i> <a href="#" onclick="alert('请按上述格式制作Excel文件')">下载Excel模板（示例）</a></p>
+    </div>
+</div>
+</body>
+</html>

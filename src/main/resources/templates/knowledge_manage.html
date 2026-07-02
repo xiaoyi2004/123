@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>知识树管理</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <style>
+        .tree-node { padding: 6px 0; border-bottom: 1px solid #e5e7eb; }
+        .tree-node .children { margin-left: 30px; }
+        .tree-node .node-content { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+        .tree-node .node-desc { color: #64748b; font-size: 0.9rem; }
+        .toggle-btn { cursor: pointer; display: inline-block; width: 20px; text-align: center; color: #4F46E5; font-size: 0.9rem; user-select: none; }
+        .toggle-btn:hover { color: #4338CA; }
+        .toggle-btn .fa-chevron-down { transition: transform 0.2s; }
+        .toggle-btn .fa-chevron-down.collapsed { transform: rotate(-90deg); }
+        .children.collapsed { display: none; }
+    </style>
+    <script>
+        // 切换子节点显示/隐藏
+        function toggleChildren(btn) {
+            var childrenDiv = btn.parentElement.nextElementSibling;
+            if (childrenDiv && childrenDiv.classList.contains('children')) {
+                childrenDiv.classList.toggle('collapsed');
+                var icon = btn.querySelector('i');
+                if (icon) {
+                    icon.classList.toggle('fa-chevron-down');
+                    icon.classList.toggle('fa-chevron-right');
+                }
+            }
+        }
+    </script>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <h1><i class="fas fa-tree"></i> 知识树管理</h1>
+        <a class="btn" href="/teacher/dashboard">返回</a>
+    </div>
+
+    <!-- 添加表单 -->
+    <form method="post" action="/teacher/knowledge/save" class="grid">
+        <input name="name" placeholder="知识点名称" required>
+        <input name="description" placeholder="描述（可选）">
+        <select name="courseId">
+            <option value="">无关联课程</option>
+            <option th:each="c : ${courses}" th:value="${c.id}" th:text="${c.name}"></option>
+        </select>
+        <select name="parentId">
+            <option value="">作为根节点</option>
+            <option th:each="kp : ${allNodes}" th:value="${kp.id}" th:text="${kp.name}"></option>
+        </select>
+        <button class="btn-primary"><i class="fas fa-plus"></i> 添加</button>
+    </form>
+
+    <hr>
+
+    <!-- 知识树渲染（递归片段） -->
+    <div id="tree">
+        <th:block th:each="root : ${tree}">
+            <th:block th:if="${root != null}" th:replace="~{::treeNode(root=${root})}" />
+        </th:block>
+    </div>
+
+    <!-- 递归渲染节点的模板片段 -->
+    <th:block th:fragment="treeNode(root)">
+        <th:block th:if="${root != null}">
+            <div class="tree-node">
+                <div class="node-content">
+                    <!-- 如果有子节点，显示切换按钮；否则占位 -->
+                    <span th:if="${root.children != null && !root.children.isEmpty()}" class="toggle-btn" onclick="toggleChildren(this)">
+                        <i class="fas fa-chevron-down"></i>
+                    </span>
+                    <span th:if="${root.children == null || root.children.isEmpty()}" class="toggle-btn" style="color:transparent;">—</span>
+                    <span><i class="fas fa-folder"></i> <b th:text="${root.name}"></b></span>
+                    <span class="node-desc" th:text="${root.description}"></span>
+                    <a class="btn-outline" th:href="'/teacher/knowledge/delete/' + ${root.id}" onclick="return confirm('删除该节点及子节点？')">
+                        <i class="fas fa-trash"></i> 删除
+                    </a>
+                </div>
+                <div class="children" th:if="${root.children != null && !root.children.isEmpty()}">
+                    <th:block th:each="child : ${root.children}">
+                        <th:block th:if="${child != null}" th:replace="~{::treeNode(root=${child})}" />
+                    </th:block>
+                </div>
+            </div>
+        </th:block>
+    </th:block>
+</div>
+</body>
+</html>

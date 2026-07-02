@@ -1,42 +1,10 @@
 <!DOCTYPE html>
-<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <title>成绩详情</title>
     <link rel="stylesheet" th:href="@{/css/style.css}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-    <style>
-        .wrong {
-            border-left: 4px solid #ef4444 !important;
-            background: #fef2f2;
-        }
-        .correct {
-            border-left: 4px solid #22c55e !important;
-            background: #f0fdf4;
-        }
-        .partial {
-            border-left: 4px solid #f59e0b !important;
-            background: #fffbeb;
-        }
-        .answer-student {
-            background: #e5e7eb;
-            padding: 4px 10px;
-            border-radius: 8px;
-            display: inline-block;
-        }
-        .answer-correct {
-            background: #dcfce7;
-            padding: 4px 10px;
-            border-radius: 8px;
-            display: inline-block;
-        }
-        .answer-wrong {
-            background: #fee2e2;
-            padding: 4px 10px;
-            border-radius: 8px;
-            display: inline-block;
-        }
-    </style>
 </head>
 <body>
 <div class="container">
@@ -47,37 +15,22 @@
         </a>
     </div>
 
-    <!-- 学生信息和总分 -->
     <div class="card">
         <p>
-            <i class="fas fa-user"></i> <b>学生：</b><span th:text="${student?.realName}"></span> &nbsp;|&nbsp;
-            <i class="fas fa-users"></i> <b>班级：</b><span th:text="${student?.className}"></span> &nbsp;|&nbsp;
-            <i class="fas fa-id-card"></i> <b>学号：</b><span th:text="${student?.studentNo}"></span> &nbsp;|&nbsp;
-            <i class="fas fa-star"></i> <b>总分：</b><span th:text="${result.score}"></span> &nbsp;|&nbsp;
-            <i class="fas fa-check-circle"></i> <b>状态：</b><span th:text="${result.gradeStatus}"></span>
-        </p>
-        <p>
-            <span class="badge"><i class="fas fa-check"></i> 客观分：<span th:text="${result.objectiveScore}"></span></span>
-            <span class="badge" style="background:#fef3c7;color:#92400e;"><i class="fas fa-pen"></i> 主观分：<span th:text="${result.subjectiveScore}"></span></span>
+            <i class="fas fa-user"></i> <b>学生：</b><span th:text="${student?.realName}"></span>
+            <i class="fas fa-users" style="margin-left:20px;"></i> <b>班级：</b><span th:text="${student?.className}"></span>
+            <i class="fas fa-id-card" style="margin-left:20px;"></i> <b>学号：</b><span th:text="${student?.studentNo}"></span>
+            <i class="fas fa-star" style="margin-left:20px;"></i> <b>总分：</b><span th:text="${result.score}"></span>
+            <i class="fas fa-check-circle" style="margin-left:20px;"></i> <b>状态：</b><span th:text="${result.gradeStatus}"></span>
         </p>
     </div>
 
-    <!-- 题目列表 -->
-    <div th:each="d, stat : ${details}" class="question-card"
-         th:classappend="${d.isCorrect == null ? '' : (d.isCorrect ? 'correct' : 'wrong')}">
+    <div th:each="d,stat : ${details}" class="question-card">
         <h3>
-            <span th:text="${stat.index + 1} + '. ' + ${d.question.title}"></span>
+            <span th:text="${stat.index+1} + '. ' + ${d.question.title}"></span>
             <span class="badge" th:text="${d.score} + '/' + ${d.fullScore} + '分'"></span>
-            <!-- 错题标记 -->
-            <span th:if="${d.isCorrect != null && !d.isCorrect}" style="color:#ef4444;margin-left:10px;">
-                <i class="fas fa-times-circle"></i> 答错
-            </span>
-            <span th:if="${d.isCorrect != null && d.isCorrect}" style="color:#22c55e;margin-left:10px;">
-                <i class="fas fa-check-circle"></i> 正确
-            </span>
-            <span th:if="${d.isCorrect == null && d.subjective}" style="color:#f59e0b;margin-left:10px;">
-                <i class="fas fa-pencil-alt"></i> 主观题
-            </span>
+            <span th:if="${d.isCorrect}" class="badge" style="background:#d1fae5;color:#065f46;"><i class="fas fa-check"></i> 正确</span>
+            <span th:if="${!d.isCorrect}" class="badge" style="background:#fee2e2;color:#991b1b;"><i class="fas fa-times"></i> 答错</span>
         </h3>
 
         <!-- 选项 -->
@@ -85,24 +38,18 @@
         <p th:if="${d.question.optionB}">B. <span th:text="${d.question.optionB}"></span></p>
         <p th:if="${d.question.optionC}">C. <span th:text="${d.question.optionC}"></span></p>
         <p th:if="${d.question.optionD}">D. <span th:text="${d.question.optionD}"></span></p>
-        <img th:if="${d.question.imageUrl}" th:src="@{${d.question.imageUrl}}" style="max-width:100%;max-height:180px;">
+        <p th:if="${d.question.optionE}">E. <span th:text="${d.question.optionE}"></span></p>
 
-        <!-- 学生答案 -->
-        <p><b><i class="fas fa-pencil-alt"></i> 我的回答：</b>
-            <span class="answer-student" th:text="${d.studentAnswer}"></span>
-        </p>
+        <!-- 图片 -->
+        <img th:if="${d.question.imageUrl}" th:src="@{${d.question.imageUrl}}" style="max-width:100%;max-height:180px">
 
-        <!-- 正确答案（仅当显示解析开启或教师查看） -->
-        <p th:if="${exam.showAnalysis == 1 || session.user.role == 'teacher'}">
-            <b><i class="fas fa-check"></i> 正确答案：</b>
-            <span class="answer-correct" th:text="${d.correctAnswer}"></span>
+        <p><b><i class="fas fa-pencil-alt"></i> 我的回答：</b><span th:text="${d.studentAnswer}"></span></p>
+        <p><b><i class="fas fa-check"></i> 正确答案：</b><span th:text="${d.correctAnswer}"></span></p>
+        <!-- 仅当教师允许查看解析时显示 -->
+        <p th:if="${exam.showAnalysis == 1}">
+            <b><i class="fas fa-lightbulb"></i> 解析：</b><span th:text="${d.question.analysis ?: '暂无解析'}"></span>
         </p>
-
-        <!-- 解析 -->
-        <p th:if="${exam.showAnalysis == 1 || session.user.role == 'teacher'}">
-            <b><i class="fas fa-lightbulb"></i> 解析：</b>
-            <span th:text="${d.question.analysis ?: '暂无解析'}"></span>
-        </p>
+        <p th:if="${exam.showAnalysis != 1}" class="muted">解析已关闭</p>
     </div>
 </div>
 </body>

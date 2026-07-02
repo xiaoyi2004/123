@@ -6,9 +6,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import org.example.onlineexam.entity.*;
 import org.example.onlineexam.repository.*;
-import org.example.onlineexam.service.ExcelExportService;
-import org.example.onlineexam.service.QuestionImportService;
-import org.example.onlineexam.service.StatisticsService;
+import org.example.onlineexam.service.*;
 import org.springframework.data.domain.*;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -33,9 +31,13 @@ public class TeacherController {
     private final ExamResultRepository examResultRepository;
     private final UserRepository userRepository;
     private final ClazzRepository clazzRepository;
+    private final KnowledgePointRepository knowledgePointRepository;
+    private final CourseRepository courseRepository;
     private final QuestionImportService importService;
     private final StatisticsService statisticsService;
     private final ExcelExportService excelExportService;
+    private final AutoPaperService autoPaperService;
+    private final KnowledgeTreeService knowledgeTreeService;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     public TeacherController(QuestionRepository questionRepository,
@@ -45,9 +47,13 @@ public class TeacherController {
                              ExamResultRepository examResultRepository,
                              UserRepository userRepository,
                              ClazzRepository clazzRepository,
+                             KnowledgePointRepository knowledgePointRepository,
+                             CourseRepository courseRepository,
                              QuestionImportService importService,
                              StatisticsService statisticsService,
-                             ExcelExportService excelExportService) {
+                             ExcelExportService excelExportService,
+                             AutoPaperService autoPaperService,
+                             KnowledgeTreeService knowledgeTreeService) {
         this.questionRepository = questionRepository;
         this.paperRepository = paperRepository;
         this.paperQuestionRepository = paperQuestionRepository;
@@ -55,12 +61,15 @@ public class TeacherController {
         this.examResultRepository = examResultRepository;
         this.userRepository = userRepository;
         this.clazzRepository = clazzRepository;
+        this.knowledgePointRepository = knowledgePointRepository;
+        this.courseRepository = courseRepository;
         this.importService = importService;
         this.statisticsService = statisticsService;
         this.excelExportService = excelExportService;
+        this.autoPaperService = autoPaperService;
+        this.knowledgeTreeService = knowledgeTreeService;
     }
 
-    // 允许教师和管理员访问
     private boolean notTeacher(HttpSession session) {
         User user = (User) session.getAttribute("user");
         return user == null || (!"teacher".equals(user.getRole()) && !"admin".equals(user.getRole()));
@@ -76,7 +85,7 @@ public class TeacherController {
     @GetMapping("/questions")
     public String questions(@RequestParam(required = false) String type,
                             @RequestParam(required = false) String subject,
-                            @RequestParam(required = false) String difficulty,
+                            @RequestParam(required = false) Integer difficulty,
                             @RequestParam(required = false) String knowledgePoint,
                             @RequestParam(defaultValue = "0") int page,
                             @RequestParam(defaultValue = "10") int size,
@@ -97,23 +106,34 @@ public class TeacherController {
         model.addAttribute("questions", questionPage.getContent());
         model.addAttribute("selectedType", type);
         model.addAttribute("selectedSubject", subject);
+        // 所有科目列表（用于下拉筛选）
         model.addAttribute("subjects", questionRepository.findDistinctSubjects());
+        model.addAttribute("knowledgePoints", knowledgePointRepository.findAll());
         return "question_list";
+    }
+
+    @GetMapping("/questions/edit/{id}")
+    public String editQuestionPage(@PathVariable Long id,
+                                   @RequestParam(defaultValue = "0") int page,
+                                   Model model, HttpSession session) {
+        if (notTeacher(session)) return "redirect:/login";
+        Question q = questionRepository.findById(id).orElse(null);
+        if (q == null) return "redirect:/teacher/questions";
+        model.addAttribute("question", q);
+        // 传递所有课程
+        model.addAttribute("courseList", courseRepository.findAll());
+        model.addAttribute("knowledgePoints", knowledgePointRepository.findAll());
+        model.addAttribute("page", page);
+        return "add_question";
     }
 
     @GetMapping("/questions/add")
     public String addQuestionPage(Model model, HttpSession session) {
         if (notTeacher(session)) return "redirect:/login";
         model.addAttribute("question", new Question());
-        return "add_question";
-    }
-
-    @GetMapping("/questions/edit/{id}")
-    public String editQuestionPage(@PathVariable Long id, Model model, HttpSession session) {
-        if (notTeacher(session)) return "redirect:/login";
-        Question q = questionRepository.findById(id).orElse(null);
-        if (q == null) return "redirect:/teacher/questions";
-        model.addAttribute("question", q);
+        model.addAttribute("courseList", courseRepository.findAll()); // 新增也需要
+        model.addAttribute("knowledgePoints", knowledgePointRepository.findAll());
+        model.addAttribute("page", 0);
         return "add_question";
     }
 
@@ -121,9 +141,17 @@ public class TeacherController {
     public String saveQuestion(@PathVariable(required = false) Long id,
                                @ModelAttribute Question question,
                                @RequestParam(value = "imageFile", required = false) MultipartFile imageFile,
+                               @RequestParam(defaultValue = "0") int page,
                                HttpSession session) throws IOException {
-        if (notTeacher(session)) return "redirect:/login";
+
+        // 权限校验
+        if (notTeacher(session)) {
+            return "redirect:/login";
+        }
+
         User user = (User) session.getAttribute("user");
+
+        // 如果是修改操作，保留原有的图片URL（如果未上传新图片）
         if (id != null) {
             Question old = questionRepository.findById(id).orElse(null);
             if (old != null && (imageFile == null || imageFile.isEmpty())) {
@@ -131,7 +159,11 @@ public class TeacherController {
             }
             question.setId(id);
         }
+
+        // 设置创建人
         question.setCreatorId(user.getId());
+
+        // 处理图片上传
         if (imageFile != null && !imageFile.isEmpty()) {
             String fileName = UUID.randomUUID() + "_" + imageFile.getOriginalFilename();
             String uploadDir = System.getProperty("user.dir") + "/uploads/";
@@ -140,35 +172,49 @@ public class TeacherController {
             imageFile.transferTo(new File(uploadDir + fileName));
             question.setImageUrl("/uploads/" + fileName);
         }
+
+        // 如果选择了知识点，同步存储知识点名称（冗余字段）
+        if (question.getKnowledgePointId() != null) {
+            knowledgePointRepository.findById(question.getKnowledgePointId())
+                    .ifPresent(kp -> question.setKnowledgePoint(kp.getName()));
+        }
+
+        // ★★★ 关键：保存题目对象，Spring 会自动绑定表单中 name="subject" 的值 ★★★
+        // 确保前端表单中 <select name="subject"> 或 <input name="subject"> 存在且值正确
         questionRepository.save(question);
-        return "redirect:/teacher/questions";
+
+        // 重定向回列表页，并携带页码
+        return "redirect:/teacher/questions?page=" + page;
     }
 
     @GetMapping("/questions/view/{id}")
-    public String viewQuestion(@PathVariable Long id, Model model, HttpSession session) {
+    public String viewQuestion(@PathVariable Long id,
+                               @RequestParam(defaultValue = "0") int page,
+                               Model model, HttpSession session) {
         if (notTeacher(session)) return "redirect:/login";
-        model.addAttribute("question", questionRepository.findById(id).orElse(null));
+        Question q = questionRepository.findById(id).orElse(null);
+        model.addAttribute("question", q);
+        model.addAttribute("page", page);
         return "question_view";
     }
 
-    // 单个删除
     @PostMapping("/questions/delete/{id}")
-    public String deleteQuestion(@PathVariable Long id, HttpSession session, RedirectAttributes ra) {
+    public String deleteQuestion(@PathVariable Long id,
+                                 @RequestParam(defaultValue = "0") int page,
+                                 HttpSession session, RedirectAttributes ra) {
         if (notTeacher(session)) return "redirect:/login";
         if (paperQuestionRepository.existsByQuestionId(id)) {
             ra.addFlashAttribute("error", "该题目已被试卷引用，无法删除");
-            return "redirect:/teacher/questions";
+            return "redirect:/teacher/questions?page=" + page;
         }
         questionRepository.deleteById(id);
         ra.addFlashAttribute("success", "题目删除成功");
-        return "redirect:/teacher/questions";
+        return "redirect:/teacher/questions?page=" + page;
     }
 
-    // 批量删除
     @PostMapping("/questions/batch-delete")
     @ResponseBody
-    public Map<String, Object> batchDeleteQuestions(@RequestParam("ids") List<Long> ids,
-                                                    HttpSession session) {
+    public Map<String, Object> batchDeleteQuestions(@RequestParam("ids") List<Long> ids, HttpSession session) {
         Map<String, Object> result = new HashMap<>();
         if (notTeacher(session)) {
             result.put("success", false);
@@ -205,6 +251,7 @@ public class TeacherController {
             List<Question> qs = importService.parseQuestions(file);
             User user = (User) session.getAttribute("user");
             qs.forEach(q -> q.setCreatorId(user.getId()));
+            // 批量保存前，可先验证、清理
             questionRepository.saveAll(qs);
             ra.addFlashAttribute("success", "成功导入 " + qs.size() + " 道题目");
         } catch (Exception e) {
@@ -248,7 +295,14 @@ public class TeacherController {
         model.addAttribute("questions", questionPage.getContent());
         model.addAttribute("selectedType", type);
         model.addAttribute("selectedSubject", subject);
+        // 传递所有不重复科目（用于下拉）
+        model.addAttribute("subjects", questionRepository.findDistinctSubjects());
+        // 传递所有题型选项（用于下拉）
+        model.addAttribute("questionTypes", Arrays.asList(
+                "single", "multiple_choice", "judge", "fill", "essay", "analysis", "programming"
+        ));
         model.addAttribute("paper", new Paper());
+        model.addAttribute("knowledgePoints", knowledgePointRepository.findAll());
         return "add_paper";
     }
 
@@ -294,12 +348,90 @@ public class TeacherController {
         return "redirect:/teacher/papers";
     }
 
+    // ==================== 智能组卷 ====================
+    @GetMapping("/papers/auto")
+    public String autoPaperPage(HttpSession session, Model model) {
+        if (notTeacher(session)) return "redirect:/login";
+        model.addAttribute("courses", courseRepository.findAll());
+        model.addAttribute("knowledgePoints", knowledgePointRepository.findAll());
+        model.addAttribute("questionTypes", Arrays.asList(
+                "single", "multiple_choice", "judge", "fill", "essay", "analysis", "programming"
+        ));
+        return "auto_paper";
+    }
+
+    @PostMapping("/papers/auto/generate")
+    @ResponseBody
+    public Map<String, Object> generatePaper(@RequestBody Map<String, Object> config, HttpSession session) {
+        Map<String, Object> result = new HashMap<>();
+        if (notTeacher(session)) {
+            result.put("success", false);
+            result.put("message", "无权限");
+            return result;
+        }
+        try {
+            Paper paper = autoPaperService.generatePaper(config);
+            result.put("success", true);
+            result.put("paperId", paper.getId());
+            result.put("message", "组卷成功，试卷ID：" + paper.getId());
+        } catch (Exception e) {
+            result.put("success", false);
+            result.put("message", e.getMessage());
+        }
+        return result;
+    }
+
+    // ==================== 知识库管理 ====================
+    @GetMapping("/knowledge")
+    public String knowledgeManage(HttpSession session, Model model) {
+        if (notTeacher(session)) return "redirect:/login";
+        model.addAttribute("allNodes", knowledgePointRepository.findAll());
+        model.addAttribute("tree", knowledgeTreeService.getTreeByCourse(null));
+        model.addAttribute("courses", courseRepository.findAll());
+        return "knowledge_manage";
+    }
+
+    @PostMapping("/knowledge/save")
+    public String saveKnowledge(@RequestParam String name,
+                                @RequestParam(required = false) String description,
+                                @RequestParam(required = false) String courseId,
+                                @RequestParam(required = false) String parentId,
+                                HttpSession session) {
+        if (notTeacher(session)) return "redirect:/login";
+        KnowledgePoint kp = new KnowledgePoint();
+        kp.setName(name);
+        kp.setDescription(description);
+        if (courseId != null && !courseId.isBlank()) {
+            kp.setCourseId(Long.parseLong(courseId));
+        }
+        if (parentId != null && !parentId.isBlank()) {
+            kp.setParentId(Long.parseLong(parentId));
+        }
+        if (kp.getParentId() != null && kp.getParentId() > 0) {
+            knowledgePointRepository.findById(kp.getParentId()).ifPresent(p -> {
+                kp.setLevel(p.getLevel() != null ? p.getLevel() + 1 : 1);
+            });
+        } else {
+            kp.setLevel(0);
+        }
+        kp.setCreatedAt(LocalDateTime.now());
+        kp.setUpdatedAt(LocalDateTime.now());
+        knowledgePointRepository.save(kp);
+        return "redirect:/teacher/knowledge";
+    }
+
+    @GetMapping("/knowledge/delete/{id}")
+    public String deleteKnowledge(@PathVariable Long id, HttpSession session) {
+        if (notTeacher(session)) return "redirect:/login";
+        knowledgePointRepository.deleteById(id);
+        return "redirect:/teacher/knowledge";
+    }
+
     // ==================== 考试发布 ====================
     @GetMapping("/exams/add")
     public String addExamPage(HttpSession session, Model model) {
         if (notTeacher(session)) return "redirect:/login";
         model.addAttribute("papers", paperRepository.findAll());
-        // 从 ClazzRepository 获取所有班级（优先）
         List<String> classNames = clazzRepository.findAll().stream()
                 .map(Clazz::getName)
                 .filter(Objects::nonNull)
@@ -340,19 +472,17 @@ public class TeacherController {
         return "redirect:/teacher/dashboard";
     }
 
-    // ==================== 成绩管理（修改：支持按考试和班级筛选）====================
+    // ==================== 成绩管理 ====================
     @GetMapping("/results")
     public String results(@RequestParam(required = false) Long examId,
                           @RequestParam(required = false) String className,
                           HttpSession session, Model model) {
         if (notTeacher(session)) return "redirect:/login";
 
-        // 获取所有考试列表（用于下拉）
         List<Exam> exams = examRepository.findAll();
         model.addAttribute("exams", exams);
         model.addAttribute("selectedExamId", examId);
 
-        // 获取所有班级列表（从 ClazzRepository）
         List<String> classNames = clazzRepository.findAll().stream()
                 .map(Clazz::getName)
                 .filter(Objects::nonNull)
@@ -366,7 +496,6 @@ public class TeacherController {
         model.addAttribute("classes", classNames);
         model.addAttribute("selectedClass", className);
 
-        // 查询成绩
         List<ExamResult> results;
         if (examId != null) {
             results = examResultRepository.findByExamId(examId);
@@ -374,7 +503,6 @@ public class TeacherController {
             results = examResultRepository.findAll();
         }
 
-        // 按班级筛选
         if (className != null && !className.isBlank()) {
             Map<Long, User> students = userRepository.findByRole("student")
                     .stream().collect(Collectors.toMap(User::getId, u -> u));
@@ -389,7 +517,6 @@ public class TeacherController {
                 .stream().collect(Collectors.toMap(User::getId, u -> u)));
         model.addAttribute("examMap", exams.stream().collect(Collectors.toMap(Exam::getId, e -> e)));
 
-        // 统计（仅当存在成绩且指定了考试时）
         if (!results.isEmpty() && examId != null) {
             model.addAttribute("statistics", statisticsService.getExamStatistics(examId));
         } else if (!results.isEmpty()) {
@@ -399,7 +526,6 @@ public class TeacherController {
         return "result";
     }
 
-    // 导出成绩（按考试导出）
     @GetMapping("/results/export/{examId}")
     public void exportResults(@PathVariable Long examId,
                               HttpServletResponse response,
@@ -410,7 +536,6 @@ public class TeacherController {
         excelExportService.exportExamResults(examId, exam, response);
     }
 
-    // 成绩统计（JSON）
     @GetMapping("/results/statistics/{examId}")
     @ResponseBody
     public Map<String, Object> getStatistics(@PathVariable Long examId, HttpSession session) {
@@ -455,7 +580,7 @@ public class TeacherController {
                 .stream()
                 .map(pq -> questionRepository.findById(pq.getQuestionId()).orElse(null))
                 .filter(Objects::nonNull)
-                .filter(q -> "essay".equals(q.getType()))
+                .filter(q -> "essay".equals(q.getType()) || "analysis".equals(q.getType()) || "programming".equals(q.getType()))
                 .collect(Collectors.toList());
 
         model.addAttribute("result", result);
@@ -481,7 +606,7 @@ public class TeacherController {
         Map<String, Integer> scores = new LinkedHashMap<>();
         for (PaperQuestion pq : paperQuestionRepository.findByPaperIdOrderBySortOrderAsc(exam.getPaperId())) {
             Question q = questionRepository.findById(pq.getQuestionId()).orElse(null);
-            if (q != null && "essay".equals(q.getType())) {
+            if (q != null && ("essay".equals(q.getType()) || "analysis".equals(q.getType()) || "programming".equals(q.getType()))) {
                 int max = pq.getScore() == null ? 0 : pq.getScore();
                 int s = Integer.parseInt(params.getOrDefault("score_" + q.getId(), "0"));
                 s = Math.max(0, Math.min(max, s));

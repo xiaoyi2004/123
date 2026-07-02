@@ -2,7 +2,9 @@ package org.example.onlineexam.service;
 
 import org.apache.poi.xwpf.usermodel.XWPFDocument;
 import org.apache.poi.xwpf.usermodel.XWPFParagraph;
+import org.example.onlineexam.entity.KnowledgePoint;
 import org.example.onlineexam.entity.Question;
+import org.example.onlineexam.repository.KnowledgePointRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -14,6 +16,12 @@ import java.util.regex.Pattern;
 @Service
 public class QuestionImportService {
 
+    private final KnowledgePointRepository knowledgePointRepository;
+
+    public QuestionImportService(KnowledgePointRepository knowledgePointRepository) {
+        this.knowledgePointRepository = knowledgePointRepository;
+    }
+
     public List<Question> parseQuestions(MultipartFile file) throws Exception {
         String fileName = file.getOriginalFilename();
         if (fileName == null) throw new RuntimeException("文件名为空");
@@ -23,7 +31,7 @@ public class QuestionImportService {
         } else if (fileName.endsWith(".docx")) {
             content = parseDocx(file.getInputStream());
         } else {
-            throw new RuntimeException("仅支持 .txt 或 .docx 文件");
+            throw new RuntimeException("仅支持 .txt 或 .docx 文件（暂不支持 Excel）");
         }
         return parseTextToQuestions(content);
     }
@@ -40,46 +48,111 @@ public class QuestionImportService {
 
     private List<Question> parseTextToQuestions(String text) {
         List<Question> list = new ArrayList<>();
-        // 按两个以上换行符分割题目块
         String[] blocks = text.split("\\n\\s*\\n");
         for (String block : blocks) {
             if (block.trim().isEmpty()) continue;
             Question q = new Question();
-            // 智能识别题型
-            String type = detectType(block);
-            q.setType(type);
-            // 提取题干（第一行去除数字序号）
-            String[] lines = block.split("\\n");
-            String titleLine = lines[0].replaceFirst("^\\d+[.、]\\s*", "").trim();
-            q.setTitle(titleLine);
 
-            // 根据题型解析选项、答案
-            if ("single".equals(type) || "judge".equals(type)) {
-                parseChoice(block, q, "single".equals(type));
-            } else if ("fill".equals(type)) {
-                parseFill(block, q);
-            } else if ("essay".equals(type)) {
-                parseEssay(block, q);
+            // 1. 提取所有标记字段
+            Map<String, String> fields = extractFields(block);
+
+            // 2. 题型
+            String type = fields.getOrDefault("题型", fields.getOrDefault("题目类型", ""));
+            q.setType(normalizeType(type));
+
+            // 3. 科目
+            q.setSubject(fields.get("科目"));
+
+            // 4. 知识点
+            String knowledge = fields.get("知识点");
+            if (knowledge != null && !knowledge.isEmpty()) {
+                List<KnowledgePoint> kps = knowledgePointRepository.findByName(knowledge);
+                if (!kps.isEmpty()) {
+                    q.setKnowledgePointId(kps.get(0).getId());
+                    q.setKnowledgePoint(kps.get(0).getName());
+                } else {
+                    q.setKnowledgePoint(knowledge);
+                }
             }
-            parseAnalysis(block, q);
+
+            // 5. 难度
+            String diffStr = fields.get("难度");
+            if (diffStr != null) {
+                try {
+                    q.setDifficulty(Math.min(5, Math.max(1, Integer.parseInt(diffStr.trim()))));
+                } catch (NumberFormatException ignored) {}
+            }
+
+            // 6. 答案
+            q.setAnswer(fields.getOrDefault("答案", fields.getOrDefault("参考答案", "")));
+
+            // 7. 解析
+            q.setAnalysis(fields.getOrDefault("解析", fields.getOrDefault("答案解析", "")));
+
+            // 8. ★★★ 提取题干：优先使用“题干：”标签，若无则取删除元数据行后的第一行 ★★★
+            String title = fields.get("题干");  // 如果有“题干：”标签
+            if (title == null) {
+                // 无标签，尝试删除元数据行后取第一行
+                String cleanBlock = removeMarkupLines(block);
+                String[] lines = cleanBlock.split("\\n");
+                if (lines.length > 0) {
+                    title = lines[0].replaceFirst("^\\d+[.、]\\s*", "").trim();
+                }
+            }
+            q.setTitle(title != null ? title : "");
+
+            // 9. 提取选项（用于选择题）
+            parseOptions(block, q);  // 注意使用原block，因为选项可能在标记行中
+
+            // 10. 如果答案仍未获取，尝试从最后一行提取
+            if (q.getAnswer() == null || q.getAnswer().isEmpty()) {
+                String lastLine = block.substring(block.lastIndexOf("\n") + 1);
+                String ans = extractAnswerFromLine(lastLine);
+                if (ans != null) q.setAnswer(ans);
+            }
+
             list.add(q);
         }
         return list;
     }
 
-    private String detectType(String block) {
-        if (block.contains("A.") && block.contains("B.") && (block.contains("C.") || block.contains("D.")))
-            return "single";
-        if (block.contains("正确") && block.contains("错误")) return "judge";
-        if (block.contains("填空") || block.contains("______")) return "fill";
-        if (block.contains("简答") || block.contains("论述")) return "essay";
-        // 默认单选
-        return "single";
+    // 提取所有标记字段
+    private Map<String, String> extractFields(String block) {
+        Map<String, String> map = new HashMap<>();
+        Pattern p = Pattern.compile("^(?i)(题干|题型|题目类型|科目|课程|知识点|知识|难度|难易|答案|参考答案|解析|答案解析)[:：]\\s*(.*)$", Pattern.MULTILINE);
+        Matcher m = p.matcher(block);
+        while (m.find()) {
+            String key = m.group(1).trim();
+            String value = m.group(2).trim();
+            // 统一键名
+            if (key.contains("题型") || key.contains("题目类型")) key = "题型";
+            else if (key.contains("科目") || key.contains("课程")) key = "科目";
+            else if (key.contains("知识点") || key.contains("知识")) key = "知识点";
+            else if (key.contains("难度") || key.contains("难易")) key = "难度";
+            else if (key.contains("答案") || key.contains("参考答案")) key = "答案";
+            else if (key.contains("解析") || key.contains("答案解析")) key = "解析";
+            // 题干直接保留
+            map.put(key, value);
+        }
+        return map;
     }
 
-    private void parseChoice(String block, Question q, boolean isSingle) {
-        // 提取选项 A. xxx B. xxx ...
-        Pattern p = Pattern.compile("([A-D])\\.\\s*([^\\n]+)");
+    // 删除所有标记行（用于无标签时取题干）
+    private String removeMarkupLines(String block) {
+        String[] lines = block.split("\\n");
+        StringBuilder sb = new StringBuilder();
+        for (String line : lines) {
+            if (line.matches("(?i)^(题干|题型|题目类型|科目|课程|知识点|知识|难度|难易|答案|参考答案|解析|答案解析)[:：].*")) {
+                continue;
+            }
+            sb.append(line).append("\n");
+        }
+        return sb.toString();
+    }
+
+    // 解析选项（从原block中提取A-E行）
+    private void parseOptions(String block, Question q) {
+        Pattern p = Pattern.compile("([A-E])\\.\\s*([^\\n]+)");
         Matcher m = p.matcher(block);
         while (m.find()) {
             String letter = m.group(1);
@@ -89,41 +162,28 @@ public class QuestionImportService {
                 case "B": q.setOptionB(text); break;
                 case "C": q.setOptionC(text); break;
                 case "D": q.setOptionD(text); break;
+                case "E": q.setOptionE(text); break;
             }
         }
-        // 答案通常在最后一行 如 答案：A  或 正确答案：B
-        String lastLine = block.substring(block.lastIndexOf("\n") + 1);
-        String ans = extractAnswer(lastLine);
-        q.setAnswer(ans != null ? ans : "A");
     }
 
-    private void parseFill(String block, Question q) {
-        // 答案在最后一行 答案：xxxx
-        String lastLine = block.substring(block.lastIndexOf("\n") + 1);
-        String ans = extractAnswer(lastLine);
-        q.setAnswer(ans != null ? ans : "");
-    }
-
-    private void parseEssay(String block, Question q) {
-        String lastLine = block.substring(block.lastIndexOf("\n") + 1);
-        String ans = extractAnswer(lastLine);
-        q.setAnswer(ans != null ? ans : "");
-    }
-
-    private void parseAnalysis(String block, Question q) {
-        for (String line : block.split("\n")) {
-            if (line.contains("解析：")) { q.setAnalysis(line.substring(line.indexOf("解析：") + 3).trim()); return; }
-            if (line.contains("答案解析：")) { q.setAnalysis(line.substring(line.indexOf("答案解析：") + 5).trim()); return; }
-        }
-    }
-
-    private String extractAnswer(String line) {
-        if (line.contains("答案：")) {
-            return line.split("答案：")[1].trim();
-        }
-        if (line.contains("正确答案：")) {
-            return line.split("正确答案：")[1].trim();
-        }
+    private String extractAnswerFromLine(String line) {
+        if (line.contains("答案：")) return line.split("答案：")[1].trim();
+        if (line.contains("正确答案：")) return line.split("正确答案：")[1].trim();
+        if (line.contains("参考答案：")) return line.split("参考答案：")[1].trim();
         return null;
+    }
+
+    private String normalizeType(String type) {
+        if (type == null) return "essay";
+        type = type.trim().toLowerCase();
+        if (type.contains("单选") || type.contains("single")) return "single";
+        if (type.contains("多选") || type.contains("multiple")) return "multiple_choice";
+        if (type.contains("判断") || type.contains("judge")) return "judge";
+        if (type.contains("填空") || type.contains("fill")) return "fill";
+        if (type.contains("简答") || type.contains("essay")) return "essay";
+        if (type.contains("分析") || type.contains("analysis")) return "analysis";
+        if (type.contains("编程") || type.contains("programming")) return "programming";
+        return "essay";
     }
 }
